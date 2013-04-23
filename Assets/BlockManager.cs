@@ -7,6 +7,9 @@ public class BlockManager : MonoBehaviour {
 	public GameObject block;
 	private int cubeSide;
 	private GameObject selector;
+	private float selAlpha = 0.7f;
+	private float cubeAlpha = 1.0f;
+	private float bgAlpha = 0.3f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<List<float>> block_coords = new List<List<float>>{
 	
@@ -39,8 +42,6 @@ public class BlockManager : MonoBehaviour {
 		
 		//block_coords.Add (new List<float>(new float[] {2f,-1f}));
 		initBlocks();
-		
-		
 		
 		// init selector
 		rotateCube();
@@ -84,15 +85,13 @@ public class BlockManager : MonoBehaviour {
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 		
-			blocks.Add((GameObject) Instantiate(block, new Vector3(block_coords[i][0], 0.75f, block_coords[i][1]), transform.rotation));
-			//blocks[blocks.Count-1].renderer.material.color = randColor();
+			dropBlock(block_coords[i][0], 0.75f, block_coords[i][1], new Color(Random.value, Random.value, Random.value, 0.05f));
 			
 		}
 		
 		for(int i = 0; i < block_coords.Count; i++) {
-		
-			blocks.Add((GameObject) Instantiate(block, new Vector3(block_coords[i][0], 1.75f, block_coords[i][1]), transform.rotation));
-			//blocks[blocks.Count-1].renderer.material.color = randColor();
+			
+			dropBlock(block_coords[i][0], 1.75f, block_coords[i][1], new Color(Random.value, Random.value, Random.value, 0.05f));
 			
 		}
 		
@@ -100,8 +99,7 @@ public class BlockManager : MonoBehaviour {
 			
 			int r = Random.Range(0,2);			
 			if(r == 1) {
-				blocks.Add((GameObject) Instantiate(block, new Vector3(block_coords[i][0], 2.75f, block_coords[i][1]), transform.rotation));
-				//blocks[blocks.Count-1].renderer.material.color = randColor();				
+				dropBlock(block_coords[i][0], 2.75f, block_coords[i][1], new Color(Random.value, Random.value, Random.value, 0.05f));
 			}
 			
 		}
@@ -111,9 +109,11 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	void dropBlocks() {
+	void dropBlock(float x, float y, float z, Color color) {
 		
-		
+		blocks.Add((GameObject) Instantiate(block, new Vector3(x, y, z), transform.rotation));
+		blocks[blocks.Count-1].renderer.material.shader = Shader.Find("Transparent/Diffuse");
+		blocks[blocks.Count-1].renderer.material.color = color;
 		
 	}
 	
@@ -131,7 +131,7 @@ public class BlockManager : MonoBehaviour {
 			foreach(GameObject block in blocks) {
 			
 				if(block.transform.position.z == -2f) {
-					block.renderer.material.color = Color.green;
+					setAlpha(block, cubeAlpha);
 					if(block.transform.position.x < x) {
 						x = block.transform.position.x;
 					}
@@ -139,7 +139,7 @@ public class BlockManager : MonoBehaviour {
 						y = block.transform.position.y;
 					}
 				} else {
-					block.renderer.material.color = Color.grey;
+					setAlpha(block, bgAlpha);
 				}
 				
 			}
@@ -151,7 +151,7 @@ public class BlockManager : MonoBehaviour {
 			foreach(GameObject block in blocks) {
 			
 				if(block.transform.position.x == -2f) {
-					block.renderer.material.color = Color.green;
+					setAlpha(block, cubeAlpha);
 					if(block.transform.position.z > z) {
 						z = block.transform.position.z;
 					}
@@ -159,7 +159,7 @@ public class BlockManager : MonoBehaviour {
 						y = block.transform.position.y;
 					}					
 				} else {
-					block.renderer.material.color = Color.grey;
+					setAlpha(block, bgAlpha);
 				}
 				
 			}
@@ -171,7 +171,7 @@ public class BlockManager : MonoBehaviour {
 			foreach(GameObject block in blocks) {
 			
 				if(block.transform.position.z == 3f) {
-					block.renderer.material.color = Color.green;
+					setAlpha(block, cubeAlpha);
 					if(block.transform.position.x > x) {
 						x = block.transform.position.x;
 					}
@@ -179,7 +179,7 @@ public class BlockManager : MonoBehaviour {
 						y = block.transform.position.y;
 					}
 				} else {
-					block.renderer.material.color = Color.grey;
+					setAlpha(block, bgAlpha);
 				}
 				
 			}
@@ -191,7 +191,7 @@ public class BlockManager : MonoBehaviour {
 			foreach(GameObject block in blocks) {
 			
 				if(block.transform.position.x == 3f) {
-					block.renderer.material.color = Color.green;
+					setAlpha(block, cubeAlpha);
 					if(block.transform.position.z < z) {
 						z = block.transform.position.z;
 					}
@@ -199,7 +199,7 @@ public class BlockManager : MonoBehaviour {
 						y = block.transform.position.y;
 					}					
 				} else {
-					block.renderer.material.color = Color.grey;
+					setAlpha(block, bgAlpha);
 				}
 				
 			}
@@ -209,17 +209,11 @@ public class BlockManager : MonoBehaviour {
 		foreach(GameObject block in blocks) {
 			if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
 				this.selector = block;
-				//block.renderer.material.color = Color.magenta;
-				//Debug.Log ("Found");
 				break;
 			}
 		}
-			
-		
-		//Debug.Log ("T: " + Time.time + " X: " + x + " Z: " + z + " Y: " + y);
 
-		
-		this.selector.renderer.material.color = Color.yellow;
+		setAlpha(this.selector, selAlpha);
 		
 	}
 	
@@ -242,8 +236,7 @@ public class BlockManager : MonoBehaviour {
 		if(Physics.Raycast(selector.transform.position, hitDirection, out hit, hitDistance)) {
 		
 			if(hit.collider.gameObject) {
-			
-				//hit.collider.gameObject.renderer.material.color = Color.blue;
+
 				updateSelector(hit.collider.gameObject);
 				
 			}
@@ -254,9 +247,9 @@ public class BlockManager : MonoBehaviour {
 	
 	void updateSelector(GameObject newSelector) {
 	
-		selector.renderer.material.color = Color.green;
+		setAlpha(this.selector, cubeAlpha);
 		selector = newSelector;
-		selector.renderer.material.color = Color.yellow;
+		setAlpha(this.selector, selAlpha);
 		
 	}	
 	
@@ -278,5 +271,11 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	void setAlpha(GameObject obj, float alpha) {
+	
+		obj.renderer.material.color = new Color(obj.renderer.material.color.r,
+			obj.renderer.material.color.g, obj.renderer.material.color.b, alpha);
+		
+	}
 	
 }
