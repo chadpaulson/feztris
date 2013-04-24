@@ -4,22 +4,22 @@ using System.Collections.Generic;
 
 public class BlockManager : MonoBehaviour {
 	
+	
 	public GameObject block;
 	private int cubeSide;
 	private GameObject selCursor;
 	private GameObject selector;
 	private GameObject selector2;
-	private bool selectorClear; // clean up
+	private bool selectorClear;
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
 	private int selectorIndex;
-	private int selector2Index; // clean up / consolidate into selector list?
+	private int selector2Index;
 	private float[] selectorSkip;
 	private float selAlpha = 0.4f;
 	private float cubeAlpha = 1.0f;
 	private float bgAlpha = 0.2f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<List<float>> block_coords = new List<List<float>>{
-	
 		new List<float>{3f,-2f},
 		new List<float>{3f,-1f},
 		new List<float>{3f,0f},
@@ -40,7 +40,6 @@ public class BlockManager : MonoBehaviour {
 		new List<float>{0f,-2f},
 		new List<float>{1f,-2f},
 		new List<float>{2f,-2f},
-		
 	};
 	
 	
@@ -100,11 +99,13 @@ public class BlockManager : MonoBehaviour {
 
 	}
 	
+	
 	void initSelection() {
 	
 		StartCoroutine(delaySelection());
 		
 	}
+	
 	
 	IEnumerator delaySelection() {
 	
@@ -114,6 +115,7 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 	}
+	
 	
 	Color randColor() {
 	
@@ -158,6 +160,7 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	
 	bool isInBounds(GameObject cursor) {
 			
 		if(this.cubeSide == 1) {
@@ -198,6 +201,7 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	
 	bool isBlockInSide(GameObject block) {
 	
 		if(this.cubeSide == 1 && block.transform.position.z == -2f) {
@@ -213,6 +217,7 @@ public class BlockManager : MonoBehaviour {
 		return false;
 		
 	}
+	
 	
 	void setSelectionPoints(ref float x, ref float z) {
 	
@@ -235,6 +240,7 @@ public class BlockManager : MonoBehaviour {
 		}		
 		
 	}
+	
 	
 	void setSelectionVector(GameObject block, ref float x, ref float z, ref float y) {
 		if(block.transform.position.y < y) {
@@ -291,15 +297,13 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	
 	void newSelection() {
-		
-		Debug.Log("New Selection Called.");
 		
 		this.selectorClear = false;
 		float x = 0f;
 		float z = 0f;
 		float y = 10f;
-		//bool initial = false;
 		
 		setSelectionPoints(ref x, ref z);
 		
@@ -326,9 +330,8 @@ public class BlockManager : MonoBehaviour {
 			}
 		}
 		
-		Debug.Log("SIDE: " + cubeSide + " X: " + x + " Y: " + y + " Z: " + z);
-		
 	}
+	
 	
 	void toggleSelectorMode() {
 			
@@ -345,7 +348,8 @@ public class BlockManager : MonoBehaviour {
 		}
 			
 	}	
-		
+	
+	
 	bool isValidSelection(GameObject cursor) {
 		
 		GameObject sel = getSelectorHalf(cursor);
@@ -357,6 +361,7 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 	}
+	
 	
 	GameObject getSelectorHalf(GameObject cursor) {
 	
@@ -384,8 +389,7 @@ public class BlockManager : MonoBehaviour {
 			if(Physics.Raycast(cursor.transform.position, hitDirection, out hit, hitDistance)) {
 				return hit.collider.gameObject;	
 			} else {
-						
-				Debug.Log ("No hit");
+
 				GameObject obj = new GameObject();
 				return obj;
 				
@@ -393,33 +397,8 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		
-			/*
-		
-					Vector3 hitDirection = transform.TransformDirection(new Vector3(1, 0, 0));
-			RaycastHit hit;
-			float hitDistance = 20f;
-			
-			if(direction == "right") {
-				hitDirection = transform.TransformDirection(Vector3.right);
-			} else if(direction == "left") {
-				hitDirection = transform.TransformDirection(Vector3.left);
-			} else if(direction == "up") {
-				hitDirection = transform.TransformDirection(Vector3.up);
-			} else if(direction == "down") {
-				hitDirection = transform.TransformDirection(Vector3.down);
-			}
-			
-			if(Physics.Raycast(this.selector.transform.position, hitDirection, out hit, hitDistance)) {
-			
-				if(hit.collider.gameObject.CompareTag("block")) {
-	
-					updateSelector(hit.collider.gameObject);
-					
-				}
-				
-			}*/
-		
 	}
+	
 	
 	void moveSelector(string direction) {
 			
@@ -443,14 +422,12 @@ public class BlockManager : MonoBehaviour {
 			
 				if(hit.collider.gameObject.CompareTag("block") && isValidSelection(hit.collider.gameObject)) {
 	
-					Debug.Log ("attempt");
 					updateSelector(hit.collider.gameObject);
 					
 				} else if(isInBounds(this.selCursor) && direction != "up" && direction != "down") {
 			
 					this.selCursor = hit.collider.gameObject;
 					moveSelector(direction);
-					Debug.Log ("In bounds");
 					
 				} else if(!isInBounds(this.selCursor)) {
 					
@@ -472,6 +449,7 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	
 	void updateSelector(GameObject newSelector) {
 	
 		if(this.selector) {
@@ -488,6 +466,7 @@ public class BlockManager : MonoBehaviour {
 		setAlpha(this.selector2, selAlpha);
 		
 	}	
+	
 	
 	public void rotateCube() {
 		
@@ -506,9 +485,8 @@ public class BlockManager : MonoBehaviour {
 			
 		newSelection();
 		
-		Debug.Log ("Side: " + this.cubeSide);
-		
 	}
+	
 	
 	void setAlpha(GameObject obj, float alpha) {
 	
@@ -516,5 +494,6 @@ public class BlockManager : MonoBehaviour {
 			obj.renderer.material.color.g, obj.renderer.material.color.b, alpha);
 		
 	}
+	
 	
 }
