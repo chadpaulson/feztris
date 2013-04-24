@@ -6,6 +6,8 @@ public class BlockManager : MonoBehaviour {
 	
 	
 	public GameObject block;
+	public Texture selectorTex;
+	private int lastColorIndex;
 	private int cubeSide;
 	private GameObject selCursor;
 	private GameObject selector;
@@ -15,10 +17,19 @@ public class BlockManager : MonoBehaviour {
 	private int selectorIndex;
 	private int selector2Index;
 	private float[] selectorSkip;
-	private float selAlpha = 0.4f;
 	private float cubeAlpha = 1.0f;
-	private float bgAlpha = 0.2f;
+	private float bgAlpha = 0.6f;
 	private List<GameObject> blocks = new List<GameObject>();
+	private List<Color> blockColors = new List<Color>{
+		new Color(56f/255f, 243f/255f, 252f/255f),
+		new Color(255f/255f, 46f/255f, 3f/255f),
+		new Color(40f/255f, 130f/255f, 51f/255f),
+		new Color(88f/255f, 219f/255f, 103f/255f),
+		new Color(237f/255f, 231f/255f, 161f/255f),
+		new Color(245f/255f, 225f/255f, 51f/255f),
+		new Color(56f/255f, 98f/255f, 252f/255f),
+		new Color(232f/255f, 58f/255f, 229f/255f),
+	};
 	private List<List<float>> block_coords = new List<List<float>>{
 		new List<float>{3f,-2f},
 		new List<float>{3f,-1f},
@@ -121,7 +132,15 @@ public class BlockManager : MonoBehaviour {
 	
 	Color randColor() {
 	
-		return new Color(Random.value, Random.value, Random.value);
+		int i = Random.Range(0, this.blockColors.Count);
+		
+		if(i == this.lastColorIndex) {
+			randColor();
+		} else {
+			this.lastColorIndex = i;	
+		}
+		
+		return this.blockColors[i];
 		
 	}
 	
@@ -130,13 +149,13 @@ public class BlockManager : MonoBehaviour {
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 		
-			dropBlock(block_coords[i][0], 0.75f, block_coords[i][1], new Color(Random.value, Random.value, Random.value, 0.05f));
+			dropBlock(block_coords[i][0], 0.75f, block_coords[i][1], randColor());
 			
 		}
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 			
-			dropBlock(block_coords[i][0], 1.75f, block_coords[i][1], new Color(Random.value, Random.value, Random.value, 0.05f));
+			dropBlock(block_coords[i][0], 1.75f, block_coords[i][1], randColor());
 			
 		}
 		
@@ -144,7 +163,7 @@ public class BlockManager : MonoBehaviour {
 			
 			int r = Random.Range(0,2);			
 			if(r == 1) {
-				dropBlock(block_coords[i][0], 2.75f, block_coords[i][1], new Color(Random.value, Random.value, Random.value, 0.05f));
+				dropBlock(block_coords[i][0], 2.75f, block_coords[i][1], randColor());
 			}
 			
 		}
@@ -455,17 +474,31 @@ public class BlockManager : MonoBehaviour {
 	void updateSelector(GameObject newSelector) {
 	
 		if(this.selector) {
-			setAlpha(this.selector, cubeAlpha);
+			//setAlpha(this.selector, cubeAlpha);
+			//this.selector.renderer.material = this.blockMat;
+			//this.selector.renderer.material.mainTexture = this.blockTex;
+			this.selector.renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		}
 		if(this.selector2) {
-			setAlpha(this.selector2, cubeAlpha);
+			//setAlpha(this.selector2, cubeAlpha);
+			//this.selector2.renderer.material = this.blockMat;
+			//this.selector2.renderer.material.mainTexture = this.blockTex;
+			this.selector2.renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		}
 		this.selCursor = newSelector;
 		this.selector = newSelector;
 		this.selector2 = getSelectorHalf(this.selector);
 		this.selectorIndex = blocks.IndexOf(newSelector);
-		setAlpha(this.selector, selAlpha);
-		setAlpha(this.selector2, selAlpha);
+		//setAlpha(this.selector, selAlpha);
+		//setAlpha(this.selector2, selAlpha);
+		//this.selector.renderer.material = this.selectorMat;
+		//this.selector2.renderer.material = this.selectorMat;
+		//this.selector.renderer.material.mainTexture = this.selectorTex;
+		//this.selector2.renderer.material.mainTexture = this.selectorTex;
+		this.selector.renderer.material.shader = Shader.Find("Decal");
+		this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex);
+		this.selector2.renderer.material.shader = Shader.Find("Decal");
+		this.selector2.renderer.material.SetTexture("_DecalTex", this.selectorTex);
 		
 	}	
 	
