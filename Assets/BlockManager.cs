@@ -78,12 +78,14 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 		if(Input.GetButtonDown("Space")) {
+			swapIt();
+			/*
 			if(this.selector) {
 				this.blocks.RemoveAt(selectorIndex);
 				Destroy(this.selector);
 				this.selectorClear = true;
 				initSelection();
-			}
+			}*/
 		}
 		
 		if(Input.GetButtonDown("Command")) {
@@ -492,6 +494,16 @@ public class BlockManager : MonoBehaviour {
 	
 		obj.renderer.material.color = new Color(obj.renderer.material.color.r,
 			obj.renderer.material.color.g, obj.renderer.material.color.b, alpha);
+		
+	}
+	
+	
+	void swapIt() {
+	
+		Color selColor = this.selector.renderer.material.color;
+		Color sel2Color = this.selector2.renderer.material.color;
+		this.selector2.renderer.material.color = selColor;
+		this.selector.renderer.material.color = sel2Color;
 		
 	}
 	
