@@ -7,9 +7,11 @@ public class BlockManager : MonoBehaviour {
 	public GameObject block;
 	private int cubeSide;
 	private GameObject selector;
-	private float selAlpha = 0.7f;
+	private bool selectorClear;
+	private int selectorIndex;
+	private float selAlpha = 0.8f;
 	private float cubeAlpha = 1.0f;
-	private float bgAlpha = 0.3f;
+	private float bgAlpha = 0.45f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<List<float>> block_coords = new List<List<float>>{
 	
@@ -39,13 +41,13 @@ public class BlockManager : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-		
+				
 		//block_coords.Add (new List<float>(new float[] {2f,-1f}));
 		initBlocks();
 		
 		// init selector
 		rotateCube();
-		
+
 	}
 	
 	
@@ -69,10 +71,38 @@ public class BlockManager : MonoBehaviour {
 			moveSelector("down");
 		}
 		
+		if(Input.GetButtonDown("Space")) {
+			if(this.selector) {
+				this.blocks.RemoveAt(selectorIndex);
+				Destroy(this.selector);
+				this.selectorClear = true;
+				initSelection();
+			}
+		}
+		
+		if(Input.GetButtonDown("Command")) {
+			initBlocks();
+			rotateCube();
+		}
+		
 		
 
 	}
-
+	
+	void initSelection() {
+	
+		StartCoroutine(delaySelection());
+		
+	}
+	
+	IEnumerator delaySelection() {
+	
+		yield return new WaitForSeconds(0.4f);
+		if(this.selectorClear) {
+			newSelection();
+		}
+		
+	}
 	
 	Color randColor() {
 	
@@ -118,19 +148,26 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	void initSelection() {
-	
+	void newSelection() {
+		
+		Debug.Log("New Selection Called.");
+		
+		this.selectorClear = false;
 		float z = 0f;
 		float x = 0f;
 		float y = 10f;
+		bool initial = false;
 		
 		if(this.cubeSide == 1) {
 		
 			// lowest x in lh corner
 			z = -2f;
 			foreach(GameObject block in blocks) {
-			
 				if(block.transform.position.z == -2f) {
+					if(!initial) {
+						x = block.transform.position.x;
+						initial = true;
+					}					
 					setAlpha(block, cubeAlpha);
 					if(block.transform.position.x < x) {
 						x = block.transform.position.x;
@@ -149,8 +186,11 @@ public class BlockManager : MonoBehaviour {
 			// highest z in lh corner
 			x = -2f;
 			foreach(GameObject block in blocks) {
-			
 				if(block.transform.position.x == -2f) {
+					if(!initial) {
+						z = block.transform.position.z;	
+						initial = true;
+					}					
 					setAlpha(block, cubeAlpha);
 					if(block.transform.position.z > z) {
 						z = block.transform.position.z;
@@ -169,8 +209,11 @@ public class BlockManager : MonoBehaviour {
 			// highest x in lh corner
 			z = 3f;
 			foreach(GameObject block in blocks) {
-			
 				if(block.transform.position.z == 3f) {
+					if(!initial) {
+						x = block.transform.position.x;	
+						initial = true;
+					}					
 					setAlpha(block, cubeAlpha);
 					if(block.transform.position.x > x) {
 						x = block.transform.position.x;
@@ -189,8 +232,11 @@ public class BlockManager : MonoBehaviour {
 			// lowest z in lh corner
 			x = 3f;
 			foreach(GameObject block in blocks) {
-			
 				if(block.transform.position.x == 3f) {
+					if(!initial) {
+						z = block.transform.position.z;	
+						initial = true;
+					}
 					setAlpha(block, cubeAlpha);
 					if(block.transform.position.z < z) {
 						z = block.transform.position.z;
@@ -205,41 +251,52 @@ public class BlockManager : MonoBehaviour {
 			}
 			
 		}			
-			
+		
+		// locate new selector
 		foreach(GameObject block in blocks) {
 			if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
 				this.selector = block;
-				break;
+				this.selectorIndex = blocks.IndexOf(block);
+				setAlpha(this.selector, selAlpha);
+ 				break;
 			}
 		}
-
-		setAlpha(this.selector, selAlpha);
+		
+		Debug.Log("SIDE: " + cubeSide + " X: " + x + " Y: " + y + " Z: " + z);
 		
 	}
 	
 	void moveSelector(string direction) {
+			
+		if(this.selector) {
+		
+			Vector3 hitDirection = transform.TransformDirection(new Vector3(1, 0, 0));
+			RaycastHit hit;
+			float hitDistance = 20f;
+			
+			if(direction == "right") {
+				hitDirection = transform.TransformDirection(Vector3.right);
+			} else if(direction == "left") {
+				hitDirection = transform.TransformDirection(Vector3.left);
+			} else if(direction == "up") {
+				hitDirection = transform.TransformDirection(Vector3.up);
+			} else if(direction == "down") {
+				hitDirection = transform.TransformDirection(Vector3.down);
+			}
+			
+			if(Physics.Raycast(this.selector.transform.position, hitDirection, out hit, hitDistance)) {
+			
+				if(hit.collider.gameObject.CompareTag("block")) {
 	
-		Vector3 hitDirection = transform.TransformDirection(new Vector3(1, 0, 0));
-		RaycastHit hit;
-		float hitDistance = 20f;
-		
-		if(direction == "right") {
-			hitDirection = transform.TransformDirection(Vector3.right);
-		} else if(direction == "left") {
-			hitDirection = transform.TransformDirection(Vector3.left);
-		} else if(direction == "up") {
-			hitDirection = transform.TransformDirection(Vector3.up);
-		} else if(direction == "down") {
-			hitDirection = transform.TransformDirection(Vector3.down);
-		}
-		
-		if(Physics.Raycast(selector.transform.position, hitDirection, out hit, hitDistance)) {
-		
-			if(hit.collider.gameObject) {
-
-				updateSelector(hit.collider.gameObject);
+					updateSelector(hit.collider.gameObject);
+					
+				}
 				
 			}
+			
+		} else {
+			
+			newSelection();
 			
 		}
 		
@@ -247,8 +304,11 @@ public class BlockManager : MonoBehaviour {
 	
 	void updateSelector(GameObject newSelector) {
 	
-		setAlpha(this.selector, cubeAlpha);
-		selector = newSelector;
+		if(this.selector) {
+			setAlpha(this.selector, cubeAlpha);
+		}
+		this.selector = newSelector;
+		this.selectorIndex = blocks.IndexOf(newSelector);
 		setAlpha(this.selector, selAlpha);
 		
 	}	
@@ -267,7 +327,7 @@ public class BlockManager : MonoBehaviour {
 			cubeSide = 4;
 		}
 			
-		initSelection();
+		newSelection();
 		
 	}
 	
