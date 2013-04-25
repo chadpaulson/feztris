@@ -20,8 +20,10 @@ public class BlockManager : MonoBehaviour {
 	private int selector2Index;
 	private float[] selectorSkip = new float[0];
 	private float cubeAlpha = 1.0f;
-	private float bgAlpha = 0.6f;
+	private float bgAlpha = 1.0f;
 	private List<GameObject> blocks = new List<GameObject>();
+	private const GameObject defaultBlock = null;
+	private const List<GameObject> defaultBlocks = null;	
 	private List<Color> blockColors = new List<Color>{
 		//new Color(255f/255f, 46f/255f, 3f/255f), // red
 		new Color(40f/255f, 130f/255f, 51f/255f), // green
@@ -65,7 +67,7 @@ public class BlockManager : MonoBehaviour {
 		// init selector
 		rotateCube();
 		
-		InvokeRepeating("newBlock", 2f, 5f);
+		InvokeRepeating("newBlock", 2f, 2.5f);
 		
 		//initDebug();
 
@@ -108,18 +110,7 @@ public class BlockManager : MonoBehaviour {
 		
 
 	}
-	
-	
-	void initDebug() {
-		StartCoroutine(delayDebug());	
-	}
-	
-	
-	IEnumerator delayDebug() {
-		yield return new WaitForSeconds(3);
-		debugCheckMatches();
-	}
-	
+		
 	
 	public void initSelection() {
 	
@@ -136,21 +127,7 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 	}
-	
-	
-	void debugCheckMatches() {
-	
-		foreach(GameObject block in this.blocks) {
 		
-			List<GameObject> matches = getMatching(block);
-			if(matches.Count > 0) {
-				Debug.Log ("ERROR: " + matches.Count + " Matches!!");
-			}
-			
-		}
-		
-	}
-	
 	
 	Color randColor() {
 	
@@ -212,12 +189,14 @@ public class BlockManager : MonoBehaviour {
 		blocks[blocks.Count-1].renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		blocks[blocks.Count-1].renderer.material.color = color;
 		
-		List<GameObject> matching = getMatching(blocks[blocks.Count-1]);
-		if(matching.Count > 0) {
-			foreach(GameObject match in matching) {
-				match.renderer.material.color = randColor();
+		// manage initial block colors
+		if(!newCubes) {
+			List<GameObject> matching = getMatching(block: blocks[blocks.Count-1]);
+			if(matching.Count > 0) {
+				foreach(GameObject match in matching) {
+					match.renderer.material.color = randColor();
+				}
 			}
-			blocks[blocks.Count-1].renderer.material.color = randColor();
 		}
 		
 	}
@@ -381,12 +360,15 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		
+		
 		bool clearedCube = false;
+		/*
 		foreach(GameObject block in vBlocks) {
 			if(clearBlocks(block)) {
 				clearedCube = true;
 			}
 		}
+		*/
 			
 		// locate new selector if cube remains the same
 		if(!clearedCube) {
@@ -561,7 +543,21 @@ public class BlockManager : MonoBehaviour {
 		} else if(angle == 270f) {
 			this.cubeSide = 4;
 		}
+		
+		
+		// check for matches
+		List<GameObject> vBlocks = new List<GameObject>();
+		foreach(GameObject block in blocks) {
+			if(isBlockInSide(block)) {
+				vBlocks.Add(block);
+			}
 			
+		}
+		if(clearBlocks(blocks: vBlocks)) {
+			//Debug.Log ("Cleared from Rotation");
+		}
+		
+		
 		newSelection();
 		
 	}
@@ -585,29 +581,44 @@ public class BlockManager : MonoBehaviour {
 			this.selector.renderer.material.color = sel2Color;
 		
 			// clear blocks
-			if(clearBlocks(selector) || clearBlocks(selector2)) {
+			List<GameObject> sel = new List<GameObject> {
+				this.selector,
+				this.selector2,
+			};
+			if(clearBlocks(blocks: sel)) {
 				this.selectorClear = true;
 				initSelection();
 			}
+			
+			
+			/*
+			if(clearBlocks(selector) || clearBlocks(selector2)) {
+				this.selectorClear = true;
+				initSelection();
+			}*/
 			
 		}
 		
 	}
 	
 	
-	public bool clearBlocks(GameObject block) {
+	public bool clearBlocks(GameObject block = defaultBlock, List<GameObject> blocks = defaultBlocks) {
 	
-		List<GameObject> matches = getMatching(block);
+		List<GameObject> matches = new List<GameObject>();
+		
+		if(block != null && blocks == null) {
+			matches = getMatching(block: block);
+		} else if(block == null && blocks != null) {
+			matches = getMatching(blocks: blocks);
+		}
 				
 		if(matches.Count > 0) {
-
-			removeBlock(block);
 			
 			foreach(GameObject match in matches) {
 				removeBlock(match);
 			}
 			
-			Debug.Log ("Adios! (" + matches.Count + ")");
+			//Debug.Log ("Adios! (" + matches.Count + ")");
 						
 			return true;
 			
@@ -634,7 +645,7 @@ public class BlockManager : MonoBehaviour {
 		
 		Vector3 hitDirection = transform.TransformDirection(direction);
 		RaycastHit hit;
-		float hitDistance = 1f;
+		float hitDistance = 2f;
 				
 		if(Physics.Raycast(block.transform.position, hitDirection, out hit, hitDistance)) {
 			
@@ -671,68 +682,102 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	
+	List<GameObject> getMatching(GameObject block = defaultBlock, List<GameObject> blocks = defaultBlocks) {
 		
-	List<GameObject> getMatching(GameObject block) {
+		List<GameObject> matchingBlocks = new List<GameObject>();
 		
+		if(block != null && blocks == null) {
+			matchingBlocks.Add(block);
+		} else if(block == null && blocks.Count > 0) {
+			matchingBlocks = blocks;	
+		}
+
 		List<GameObject> hor = new List<GameObject>();
 		List<GameObject> ver = new List<GameObject>();
 		List<GameObject> matches = new List<GameObject>();
 		
-		// check up
-		Vector3 upDir = Vector3.up;
-		GameObject upMatch = matchNext(block, ref upDir);
-		while(upMatch.CompareTag("block")) {
-		
-			hor.Add(upMatch);
-			upMatch = matchNext(upMatch, ref upDir);
-			
-		}
+		foreach(GameObject matchingBlock in matchingBlocks) {
 
-		// check down
-		Vector3 downDir = Vector3.down;
-		GameObject downMatch = matchNext(block, ref downDir);
-		while(downMatch.CompareTag("block")) {
-		
-			hor.Add(downMatch);
-			downMatch = matchNext(downMatch, ref downDir);
+			hor = new List<GameObject>();
+			ver = new List<GameObject>();
+			bool addBlock = false;
 			
-		}
-
-		// check left
-		Vector3 leftDir = Vector3.left;
-		GameObject leftMatch = matchNext(block, ref leftDir);
-		while(leftMatch.CompareTag("block")) {
-		
-			ver.Add(leftMatch);
-			leftMatch = matchNext(leftMatch, ref leftDir);
+			// check up
+			Vector3 upDir = Vector3.up;
+			GameObject upMatch = matchNext(matchingBlock, ref upDir);
+			while(upMatch.CompareTag("block")) {
 			
-		}
-		this.pivots = 0;
-
-		// check right
-		Vector3 rightDir = Vector3.right;
-		GameObject rightMatch = matchNext(block, ref rightDir);
-		while(rightMatch.CompareTag("block")) {
-		
-			ver.Add(rightMatch);
-			rightMatch = matchNext(rightMatch, ref rightDir);
-			
-		}
-		this.pivots = 0;
+				if(!hor.Contains(upMatch)) {
+					hor.Add(upMatch);
+				}
+				upMatch = matchNext(upMatch, ref upDir);
 				
-		if(hor.Count >= 2) {
-			foreach(GameObject h in hor) {
-				matches.Add(h);
 			}
-		}
-		
-		if(ver.Count >=2) {
-			foreach(GameObject v in ver) {
-				matches.Add(v);
+	
+			// check down
+			Vector3 downDir = Vector3.down;
+			GameObject downMatch = matchNext(matchingBlock, ref downDir);
+			while(downMatch.CompareTag("block")) {
+			
+				if(!hor.Contains(downMatch)) {
+					hor.Add(downMatch);
+				}
+				downMatch = matchNext(downMatch, ref downDir);
+				
 			}
+	
+			// check left
+			Vector3 leftDir = Vector3.left;
+			GameObject leftMatch = matchNext(matchingBlock, ref leftDir);
+			while(leftMatch.CompareTag("block")) {
+			
+				if(!ver.Contains(leftMatch)) {
+					ver.Add(leftMatch);
+				}
+				leftMatch = matchNext(leftMatch, ref leftDir);
+				
+			}
+			this.pivots = 0;
+	
+			// check right
+			Vector3 rightDir = Vector3.right;
+			GameObject rightMatch = matchNext(matchingBlock, ref rightDir);
+			while(rightMatch.CompareTag("block")) {
+			
+				if(!ver.Contains(rightMatch)) {
+					ver.Add(rightMatch);
+				}
+				rightMatch = matchNext(rightMatch, ref rightDir);
+				
+			}
+			this.pivots = 0;
+					
+			if(hor.Count >= 2) {
+				foreach(GameObject h in hor) {
+					if(!matches.Contains(h)) {
+						matches.Add(h);
+						addBlock = true;
+					}
+				}
+			}
+			
+			if(ver.Count >=2) {
+				foreach(GameObject v in ver) {
+					if(!matches.Contains(v)) {
+						matches.Add(v);
+						addBlock = true;
+					}
+				}
+			}
+			
+			if(addBlock && !matches.Contains(matchingBlock)) {
+				matches.Add(matchingBlock);	
+			}
+			
+			//Debug.Log ("H: " + hor.Count + " V: " + ver.Count);
+			
 		}
-		
-		//Debug.Log ("H: " + hor.Count + " V: " + ver.Count);
 		
 		return matches;
 		
