@@ -9,6 +9,7 @@ public class BlockManager : MonoBehaviour {
 	public Texture selectorTex;
 	private int lastColorIndex;
 	private int cubeSide;
+	private int pivots = 0;
 	private GameObject selCursor;
 	private GameObject selector;
 	private GameObject selector2;
@@ -16,7 +17,7 @@ public class BlockManager : MonoBehaviour {
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
 	private int selectorIndex;
 	private int selector2Index;
-	private float[] selectorSkip;
+	private float[] selectorSkip = new float[0];
 	private float cubeAlpha = 1.0f;
 	private float bgAlpha = 0.6f;
 	private List<GameObject> blocks = new List<GameObject>();
@@ -56,9 +57,7 @@ public class BlockManager : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-		
-		this.selectorSkip = new float[0];
-		
+				
 		//block_coords.Add (new List<float>(new float[] {2f,-1f}));
 		initBlocks();
 		
@@ -90,13 +89,6 @@ public class BlockManager : MonoBehaviour {
 		
 		if(Input.GetButtonDown("Space")) {
 			swapIt();
-			/*
-			if(this.selector) {
-				this.blocks.RemoveAt(selectorIndex);
-				Destroy(this.selector);
-				this.selectorClear = true;
-				initSelection();
-			}*/
 		}
 		
 		if(Input.GetButtonDown("Command")) {
@@ -474,27 +466,15 @@ public class BlockManager : MonoBehaviour {
 	void updateSelector(GameObject newSelector) {
 	
 		if(this.selector) {
-			//setAlpha(this.selector, cubeAlpha);
-			//this.selector.renderer.material = this.blockMat;
-			//this.selector.renderer.material.mainTexture = this.blockTex;
 			this.selector.renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		}
 		if(this.selector2) {
-			//setAlpha(this.selector2, cubeAlpha);
-			//this.selector2.renderer.material = this.blockMat;
-			//this.selector2.renderer.material.mainTexture = this.blockTex;
 			this.selector2.renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		}
 		this.selCursor = newSelector;
 		this.selector = newSelector;
 		this.selector2 = getSelectorHalf(this.selector);
 		this.selectorIndex = blocks.IndexOf(newSelector);
-		//setAlpha(this.selector, selAlpha);
-		//setAlpha(this.selector2, selAlpha);
-		//this.selector.renderer.material = this.selectorMat;
-		//this.selector2.renderer.material = this.selectorMat;
-		//this.selector.renderer.material.mainTexture = this.selectorTex;
-		//this.selector2.renderer.material.mainTexture = this.selectorTex;
 		this.selector.renderer.material.shader = Shader.Find("Decal");
 		this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex);
 		this.selector2.renderer.material.shader = Shader.Find("Decal");
@@ -533,10 +513,163 @@ public class BlockManager : MonoBehaviour {
 	
 	void swapIt() {
 	
-		Color selColor = this.selector.renderer.material.color;
-		Color sel2Color = this.selector2.renderer.material.color;
-		this.selector2.renderer.material.color = selColor;
-		this.selector.renderer.material.color = sel2Color;
+		// swap colors
+		if(this.selector && this.selector2) {
+			Color selColor = this.selector.renderer.material.color;
+			Color sel2Color = this.selector2.renderer.material.color;
+			this.selector2.renderer.material.color = selColor;
+			this.selector.renderer.material.color = sel2Color;
+		
+			// clear blocks
+			if(clearBlocks(selector) || clearBlocks(selector2)) {
+				this.selectorClear = true;
+				initSelection();
+			}
+			
+		}
+		
+	}
+	
+	
+	bool clearBlocks(GameObject block) {
+	
+		List<GameObject> matches = getMatching(block);
+				
+		if(matches.Count > 0) {
+
+			removeBlock(block);
+			
+			foreach(GameObject match in matches) {
+				removeBlock(match);
+			}
+						
+			return true;
+			
+		}
+		
+		return false;
+		
+	}
+	
+	
+	void removeBlock(GameObject block) {
+		
+		
+		int i = this.blocks.IndexOf(block);
+		Destroy(this.blocks[i]);
+		this.blocks.RemoveAt(i);
+		
+		
+		//block.renderer.material.color = Color.white;
+		
+	}
+	
+	
+	GameObject matchNext(GameObject block, ref Vector3 direction) {
+		
+		Vector3 hitDirection = transform.TransformDirection(direction);
+		RaycastHit hit;
+		float hitDistance = 1f;
+				
+		if(Physics.Raycast(block.transform.position, hitDirection, out hit, hitDistance)) {
+			
+			if(hit.collider.gameObject.CompareTag("block") && 
+				hit.collider.gameObject.renderer.material.color == block.renderer.gameObject.renderer.material.color) {
+			
+				return hit.collider.gameObject;
+				
+			}
+		
+		} else if((direction == Vector3.left || direction == Vector3.right) && this.pivots == 0) {
+			
+			this.pivots = 1;
+			hitDirection = transform.TransformDirection(Vector3.forward);
+			
+			if(Physics.Raycast(block.transform.position, hitDirection, out hit, hitDistance)) {
+				
+				if(hit.collider.gameObject.CompareTag("block") && 
+					hit.collider.gameObject.renderer.material.color.r == block.renderer.gameObject.renderer.material.color.r && 
+					hit.collider.gameObject.renderer.material.color.g == block.renderer.gameObject.renderer.material.color.g &&
+					hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b) {
+				
+					direction = Vector3.forward;
+					return hit.collider.gameObject;
+					
+				}
+			
+			}
+			
+		}
+
+		GameObject obj = new GameObject();
+		return obj;
+		
+	}
+	
+		
+	List<GameObject> getMatching(GameObject block) {
+		
+		List<GameObject> hor = new List<GameObject>();
+		List<GameObject> ver = new List<GameObject>();
+		List<GameObject> matches = new List<GameObject>();
+		
+		// check up
+		Vector3 upDir = Vector3.up;
+		GameObject upMatch = matchNext(block, ref upDir);
+		while(upMatch.CompareTag("block")) {
+		
+			hor.Add(upMatch);
+			upMatch = matchNext(upMatch, ref upDir);
+			
+		}
+
+		// check down
+		Vector3 downDir = Vector3.down;
+		GameObject downMatch = matchNext(block, ref downDir);
+		while(downMatch.CompareTag("block")) {
+		
+			hor.Add(downMatch);
+			downMatch = matchNext(downMatch, ref downDir);
+			
+		}
+
+		// check left
+		Vector3 leftDir = Vector3.left;
+		GameObject leftMatch = matchNext(block, ref leftDir);
+		while(leftMatch.CompareTag("block")) {
+		
+			ver.Add(leftMatch);
+			leftMatch = matchNext(leftMatch, ref leftDir);
+			
+		}
+		this.pivots = 0;
+
+		// check right
+		Vector3 rightDir = Vector3.right;
+		GameObject rightMatch = matchNext(block, ref rightDir);
+		while(rightMatch.CompareTag("block")) {
+		
+			ver.Add(rightMatch);
+			rightMatch = matchNext(rightMatch, ref rightDir);
+			
+		}
+		this.pivots = 0;
+				
+		if(hor.Count >= 2) {
+			foreach(GameObject h in hor) {
+				matches.Add(h);
+			}
+		}
+		
+		if(ver.Count >=2) {
+			foreach(GameObject v in ver) {
+				matches.Add(v);
+			}
+		}
+		
+		//Debug.Log ("H: " + hor.Count + " V: " + ver.Count);
+		
+		return matches;
 		
 	}
 	
