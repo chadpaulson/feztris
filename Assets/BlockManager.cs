@@ -22,14 +22,14 @@ public class BlockManager : MonoBehaviour {
 	private float bgAlpha = 0.6f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<Color> blockColors = new List<Color>{
-		new Color(56f/255f, 243f/255f, 252f/255f),
-		new Color(255f/255f, 46f/255f, 3f/255f),
-		new Color(40f/255f, 130f/255f, 51f/255f),
-		new Color(88f/255f, 219f/255f, 103f/255f),
-		new Color(237f/255f, 231f/255f, 161f/255f),
-		new Color(245f/255f, 225f/255f, 51f/255f),
-		new Color(56f/255f, 98f/255f, 252f/255f),
-		new Color(232f/255f, 58f/255f, 229f/255f),
+		//new Color(255f/255f, 46f/255f, 3f/255f), // red
+		//new Color(40f/255f, 130f/255f, 51f/255f), // green
+		//new Color(56f/255f, 98f/255f, 252f/255f), // blue		
+		new Color(56f/255f, 243f/255f, 252f/255f), // aqua
+		new Color(88f/255f, 219f/255f, 103f/255f), // light green
+		//new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
+		new Color(245f/255f, 225f/255f, 51f/255f), // bright yellow
+		new Color(232f/255f, 58f/255f, 229f/255f), // purple
 	};
 	private List<List<float>> block_coords = new List<List<float>>{
 		new List<float>{3f,-2f},
@@ -63,6 +63,8 @@ public class BlockManager : MonoBehaviour {
 		
 		// init selector
 		rotateCube();
+		
+		//initDebug();
 
 	}
 	
@@ -105,6 +107,17 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
+	void initDebug() {
+		StartCoroutine(delayDebug());	
+	}
+	
+	
+	IEnumerator delayDebug() {
+		yield return new WaitForSeconds(3);
+		debugCheckMatches();
+	}
+	
+	
 	void initSelection() {
 	
 		StartCoroutine(delaySelection());
@@ -117,6 +130,20 @@ public class BlockManager : MonoBehaviour {
 		yield return new WaitForSeconds(0.4f);
 		if(this.selectorClear) {
 			newSelection();
+		}
+		
+	}
+	
+	
+	void debugCheckMatches() {
+	
+		foreach(GameObject block in this.blocks) {
+		
+			List<GameObject> matches = getMatching(block);
+			if(matches.Count > 0) {
+				Debug.Log ("ERROR: " + matches.Count + " Matches!!");
+			}
+			
 		}
 		
 	}
@@ -170,6 +197,14 @@ public class BlockManager : MonoBehaviour {
 		blocks.Add((GameObject) Instantiate(block, new Vector3(x, y, z), transform.rotation));
 		blocks[blocks.Count-1].renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		blocks[blocks.Count-1].renderer.material.color = color;
+		
+		List<GameObject> matching = getMatching(blocks[blocks.Count-1]);
+		if(matching.Count > 0) {
+			foreach(GameObject match in matching) {
+				match.renderer.material.color = randColor();
+			}
+			blocks[blocks.Count-1].renderer.material.color = randColor();
+		}
 		
 	}
 	
@@ -317,11 +352,13 @@ public class BlockManager : MonoBehaviour {
 		float x = 0f;
 		float z = 0f;
 		float y = 10f;
+		List<GameObject> vBlocks = new List<GameObject>();
 		
 		setSelectionPoints(ref x, ref z);
 		
 		foreach(GameObject block in blocks) {
 			if(isBlockInSide(block)) {
+				vBlocks.Add(block);
 				setAlpha(block, cubeAlpha);
 				setSelectionVector(block, ref x, ref z, ref y);
 			} else {
@@ -329,18 +366,31 @@ public class BlockManager : MonoBehaviour {
 			}
 			
 		}
-				
-		// locate new selector
-		foreach(GameObject block in blocks) {
-			if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
-				if(isValidSelection(block)) {
-					updateSelector(block);
-				} else {
-					this.selectorSkip = new float[2] {block.transform.position.x, block.transform.position.z};
-					newSelection();
-				}
- 				break;
+		
+		bool clearedCube = false;
+		foreach(GameObject block in vBlocks) {
+			if(clearBlocks(block)) {
+				clearedCube = true;
 			}
+		}
+			
+		// locate new selector if cube remains the same
+		if(!clearedCube) {
+			foreach(GameObject block in blocks) {
+				if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
+					if(isValidSelection(block)) {
+						updateSelector(block);
+					} else {
+						this.selectorSkip = new float[2] {block.transform.position.x, block.transform.position.z};
+						newSelection();
+					}
+	 				break;
+				}
+			}
+		// otherwise start over
+		} else {
+			this.selectorClear = true;
+			initSelection();	
 		}
 		
 	}
@@ -554,13 +604,9 @@ public class BlockManager : MonoBehaviour {
 	
 	void removeBlock(GameObject block) {
 		
-		
 		int i = this.blocks.IndexOf(block);
 		Destroy(this.blocks[i]);
 		this.blocks.RemoveAt(i);
-		
-		
-		//block.renderer.material.color = Color.white;
 		
 	}
 	
