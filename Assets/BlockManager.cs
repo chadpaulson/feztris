@@ -7,13 +7,14 @@ public class BlockManager : MonoBehaviour {
 	
 	public GameObject block;
 	public Texture selectorTex;
+	public bool selectorClear;
+	public bool newCubes = false;
 	private int lastColorIndex;
 	private int cubeSide;
 	private int pivots = 0;
 	private GameObject selCursor;
 	private GameObject selector;
 	private GameObject selector2;
-	private bool selectorClear;
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
 	private int selectorIndex;
 	private int selector2Index;
@@ -23,11 +24,11 @@ public class BlockManager : MonoBehaviour {
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<Color> blockColors = new List<Color>{
 		//new Color(255f/255f, 46f/255f, 3f/255f), // red
-		//new Color(40f/255f, 130f/255f, 51f/255f), // green
+		new Color(40f/255f, 130f/255f, 51f/255f), // green
 		//new Color(56f/255f, 98f/255f, 252f/255f), // blue		
 		new Color(56f/255f, 243f/255f, 252f/255f), // aqua
 		new Color(88f/255f, 219f/255f, 103f/255f), // light green
-		//new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
+		new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
 		new Color(245f/255f, 225f/255f, 51f/255f), // bright yellow
 		new Color(232f/255f, 58f/255f, 229f/255f), // purple
 	};
@@ -63,6 +64,8 @@ public class BlockManager : MonoBehaviour {
 		
 		// init selector
 		rotateCube();
+		
+		InvokeRepeating("newBlock", 2f, 5f);
 		
 		//initDebug();
 
@@ -118,7 +121,7 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	void initSelection() {
+	public void initSelection() {
 	
 		StartCoroutine(delaySelection());
 		
@@ -188,6 +191,17 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 		
+		
+	}
+	
+	void newBlock() {
+	
+		if(!newCubes) {
+			newCubes = true;
+		}
+		
+		int i = Random.Range(0, block_coords.Count);
+		dropBlock(block_coords[i][0], 9f, block_coords[i][1], randColor());
 		
 	}
 	
@@ -581,7 +595,7 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	bool clearBlocks(GameObject block) {
+	public bool clearBlocks(GameObject block) {
 	
 		List<GameObject> matches = getMatching(block);
 				
@@ -592,6 +606,8 @@ public class BlockManager : MonoBehaviour {
 			foreach(GameObject match in matches) {
 				removeBlock(match);
 			}
+			
+			Debug.Log ("Adios! (" + matches.Count + ")");
 						
 			return true;
 			
@@ -605,8 +621,11 @@ public class BlockManager : MonoBehaviour {
 	void removeBlock(GameObject block) {
 		
 		int i = this.blocks.IndexOf(block);
-		Destroy(this.blocks[i]);
-		this.blocks.RemoveAt(i);
+		
+		if(blocks[i]) {
+			Destroy(this.blocks[i]);
+			this.blocks.RemoveAt(i);
+		}
 		
 	}
 	
