@@ -20,7 +20,7 @@ public class BlockManager : MonoBehaviour {
 	private int selector2Index;
 	private float[] selectorSkip = new float[0];
 	private float cubeAlpha = 1.0f;
-	private float bgAlpha = 1.0f;
+	private float bgAlpha = 0.6f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private const GameObject defaultBlock = null;
 	private const List<GameObject> defaultBlocks = null;	
@@ -101,14 +101,7 @@ public class BlockManager : MonoBehaviour {
 		
 		if(Input.GetButtonDown("Command")) {
 			toggleSelectorMode();
-		}
-		
-		if(Input.GetButtonDown("Control")) {
-			initBlocks();
-			rotateCube();
-		}
-		
-		
+		}		
 
 	}
 		
@@ -346,13 +339,11 @@ public class BlockManager : MonoBehaviour {
 		float x = 0f;
 		float z = 0f;
 		float y = 10f;
-		List<GameObject> vBlocks = new List<GameObject>();
-		
+
 		setSelectionPoints(ref x, ref z);
 		
 		foreach(GameObject block in blocks) {
 			if(isBlockInSide(block)) {
-				vBlocks.Add(block);
 				setAlpha(block, cubeAlpha);
 				setSelectionVector(block, ref x, ref z, ref y);
 			} else {
@@ -361,34 +352,19 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		
-		
-		bool clearedCube = false;
-		/*
-		foreach(GameObject block in vBlocks) {
-			if(clearBlocks(block)) {
-				clearedCube = true;
-			}
-		}
-		*/
-			
-		// locate new selector if cube remains the same
-		if(!clearedCube) {
-			foreach(GameObject block in blocks) {
-				if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
-					if(isValidSelection(block)) {
-						updateSelector(block);
-					} else {
-						this.selectorSkip = new float[2] {block.transform.position.x, block.transform.position.z};
-						newSelection();
-					}
-	 				break;
+		// locate new selector
+		foreach(GameObject block in blocks) {
+			if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
+				if(isValidSelection(block)) {
+					updateSelector(block);
+				} else {
+					this.selectorSkip = new float[2] {block.transform.position.x, block.transform.position.z};
+					newSelection();
 				}
+ 				break;
 			}
-		// otherwise start over
-		} else {
-			this.selectorClear = true;
-			initSelection();	
 		}
+
 		
 	}
 	
@@ -582,29 +558,7 @@ public class BlockManager : MonoBehaviour {
 			Color selColor = this.selector.renderer.material.color;
 			Color sel2Color = this.selector2.renderer.material.color;
 			this.selector2.renderer.material.color = selColor;
-			this.selector.renderer.material.color = sel2Color;
-		
-			/*
-			
-			// clear blocks
-			List<GameObject> sel = new List<GameObject> {
-				this.selector,
-				this.selector2,
-			};
-			if(clearBlocks(blocks: sel)) {
-				this.selectorClear = true;
-				initSelection();
-			}
-			
-			*/
-			
-			
-			/*
-			if(clearBlocks(selector) || clearBlocks(selector2)) {
-				this.selectorClear = true;
-				initSelection();
-			}*/
-			
+			this.selector.renderer.material.color = sel2Color;			
 		}
 		
 	}
@@ -657,8 +611,12 @@ public class BlockManager : MonoBehaviour {
 				
 		if(Physics.Raycast(block.transform.position, hitDirection, out hit, hitDistance)) {
 			
+			/*if(hit.collider.gameObject.CompareTag("block") && 
+				hit.collider.gameObject.renderer.material.color == block.renderer.gameObject.renderer.material.color) {*/
 			if(hit.collider.gameObject.CompareTag("block") && 
-				hit.collider.gameObject.renderer.material.color == block.renderer.gameObject.renderer.material.color) {
+				hit.collider.gameObject.renderer.material.color.r == block.renderer.gameObject.renderer.material.color.r && 
+				hit.collider.gameObject.renderer.material.color.g == block.renderer.gameObject.renderer.material.color.g &&
+				hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b) {			
 			
 				return hit.collider.gameObject;
 				
