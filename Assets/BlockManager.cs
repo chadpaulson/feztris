@@ -24,7 +24,8 @@ public class BlockManager : MonoBehaviour {
 	private List<GameObject> blocks = new List<GameObject>();
 	private const GameObject defaultBlock = null;
 	private const List<GameObject> defaultBlocks = null;	
-	private List<Color> blockColors = new List<Color>{
+	private List<Color> blockColors = new List<Color>();
+	/*{
 		//new Color(255f/255f, 46f/255f, 3f/255f), // red
 		new Color(40f/255f, 130f/255f, 51f/255f), // green
 		//new Color(56f/255f, 98f/255f, 252f/255f), // blue		
@@ -33,7 +34,7 @@ public class BlockManager : MonoBehaviour {
 		new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
 		new Color(245f/255f, 225f/255f, 51f/255f), // bright yellow
 		new Color(232f/255f, 58f/255f, 229f/255f), // purple
-	};
+	};*/
 	private List<List<float>> block_coords = new List<List<float>>{
 		new List<float>{3f,-2f},
 		new List<float>{3f,-1f},
@@ -60,7 +61,9 @@ public class BlockManager : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-				
+		
+		createColors();
+		
 		//block_coords.Add (new List<float>(new float[] {2f,-1f}));
 		initBlocks();
 		
@@ -69,8 +72,6 @@ public class BlockManager : MonoBehaviour {
 		
 		InvokeRepeating("newBlock", 2f, 2.5f);
 		InvokeRepeating("clearAllBlocks", 0.5f, 0.25f);
-		
-		//initDebug();
 
 	}
 	
@@ -104,7 +105,16 @@ public class BlockManager : MonoBehaviour {
 		}		
 
 	}
+	
+	
+	void createColors() {
+	
+		for(int i = 0; i < 7; i++) {
+			this.blockColors.Add(new Color(Random.value, Random.value, Random.value));
+		}
 		
+	}
+	
 	
 	public void initSelection() {
 	
