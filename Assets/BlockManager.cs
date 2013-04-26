@@ -68,6 +68,7 @@ public class BlockManager : MonoBehaviour {
 		rotateCube();
 		
 		InvokeRepeating("newBlock", 2f, 2.5f);
+		InvokeRepeating("clearAllBlocks", 0.5f, 0.25f);
 		
 		//initDebug();
 
@@ -178,7 +179,7 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 		int i = Random.Range(0, block_coords.Count);
-		dropBlock(block_coords[i][0], 9f, block_coords[i][1], randColor());
+		dropBlock(block_coords[i][0], 19f, block_coords[i][1], randColor());
 		
 	}
 	
@@ -543,7 +544,13 @@ public class BlockManager : MonoBehaviour {
 		} else if(angle == 270f) {
 			this.cubeSide = 4;
 		}
+				
+		newSelection();
 		
+	}
+	
+	
+	void clearAllBlocks() {
 		
 		// check for matches
 		List<GameObject> vBlocks = new List<GameObject>();
@@ -555,10 +562,7 @@ public class BlockManager : MonoBehaviour {
 		}
 		if(clearBlocks(blocks: vBlocks)) {
 			//Debug.Log ("Cleared from Rotation");
-		}
-		
-		
-		newSelection();
+		}		
 		
 	}
 	
@@ -580,6 +584,8 @@ public class BlockManager : MonoBehaviour {
 			this.selector2.renderer.material.color = selColor;
 			this.selector.renderer.material.color = sel2Color;
 		
+			/*
+			
 			// clear blocks
 			List<GameObject> sel = new List<GameObject> {
 				this.selector,
@@ -589,6 +595,8 @@ public class BlockManager : MonoBehaviour {
 				this.selectorClear = true;
 				initSelection();
 			}
+			
+			*/
 			
 			
 			/*
@@ -645,7 +653,7 @@ public class BlockManager : MonoBehaviour {
 		
 		Vector3 hitDirection = transform.TransformDirection(direction);
 		RaycastHit hit;
-		float hitDistance = 2f;
+		float hitDistance = 1f;
 				
 		if(Physics.Raycast(block.transform.position, hitDirection, out hit, hitDistance)) {
 			
