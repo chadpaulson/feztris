@@ -69,7 +69,7 @@ public class BlockManager : MonoBehaviour {
 		// init selector
 		rotateCube();
 		
-		InvokeRepeating("newBlock", 2f, 2.5f);
+		InvokeRepeating("newBlock", 2f, 1.5f);
 		InvokeRepeating("clearAllBlocks", 0.5f, 0.25f);
 
 	}
