@@ -22,6 +22,7 @@ public class Block : MonoBehaviour {
 	
 	void OnCollisionEnter(Collision col) {
 	
+		/*
 		List<GameObject> blocks = new List<GameObject>{
 			gameObject,
 			col.collider.gameObject,
@@ -32,7 +33,7 @@ public class Block : MonoBehaviour {
 				manager.selectorClear = true;
 				manager.initSelection();
 			}
-		}
+		}*/
 		
 	}
 

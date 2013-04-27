@@ -103,27 +103,36 @@ public class BlockManager : MonoBehaviour {
 			toggleSelectorMode();
 		}
 		
-		/*if(Input.GetButtonDown("Reset")) {
-			reset();	
-		}*/
+		if(Input.GetButtonDown("Reset")) {
+			initReset();	
+		}
 
 	}
 	
 	
 	void reset() {
 	
-		CancelInvoke();
+		//CancelInvoke();
 		
-		List<GameObject> gameBlocks = this.blocks;
+		//initReset();
 		
-		foreach(GameObject block in gameBlocks) {
-			Debug.Log ("Test");
-			removeBlock(block);			
+		
+		int count = blocks.Count;
+		List<GameObject> sons = new List<GameObject>();
+		foreach(GameObject b in blocks) {
+			sons.Add(b);
 		}
 		
-		this.blockColors = new List<Color>();
-		createColors();
 		
+		if(count > 0) {
+
+			for(int i = 0; i < count; i++) {				
+
+				removeBlock(sons[i]);
+			}
+			
+		}
+				
 		//block_coords.Add (new List<float>(new float[] {2f,-1f}));
 		initBlocks();
 		
@@ -160,7 +169,21 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 	}
+	
+	void initReset() {
+	
+		StartCoroutine(delayReset());
 		
+	}
+	
+	IEnumerator delayReset() {
+	
+		CancelInvoke();
+		yield return new WaitForSeconds(2f);
+		reset();
+		
+	}
+	
 	
 	Color randColor() {
 	
