@@ -64,24 +64,17 @@ public class BlockManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		
-		//createColors();
-		
-		//block_coords.Add (new List<float>(new float[] {2f,-1f}));
 		initBlocks();
 		
-		// init selector
 		rotateCube();
 		
-		InvokeRepeating("newBlock", 2f, 1.5f);
-		InvokeRepeating("clearAllBlocks", 0.5f, 0.25f);
-		InvokeRepeating("enableBlockFall", 0.5f, 1f);
+		initRepeats();
 
 	}
 	
 	
 	// Update is called once per frame
 	void Update () {
-	
 		
 		if(Input.GetButtonDown("Right")) {
 			moveSelector("right");
@@ -110,6 +103,8 @@ public class BlockManager : MonoBehaviour {
 		if(Input.GetButtonDown("Reset")) {
 			initReset();	
 		}
+		
+		clearAllBlocks();
 
 	}
 	
@@ -138,8 +133,7 @@ public class BlockManager : MonoBehaviour {
 		// init selector
 		rotateCube();
 		
-		InvokeRepeating("newBlock", 2f, 2.5f);
-		InvokeRepeating("clearAllBlocks", 0.5f, 0.25f);					
+		initRepeats();			
 				
 	}
 	
@@ -194,6 +188,16 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	
+	void initRepeats() {
+		
+		InvokeRepeating("newBlock", 2f, 1.5f);
+		//InvokeRepeating("clearAllBlocks", 0.5f, 0.1f);
+		InvokeRepeating("enableBlockFall", 0.5f, 1f);
+		
+	}
+	
+	
 	IEnumerator delayReset() {
 	
 		newCubes = false;
@@ -232,12 +236,24 @@ public class BlockManager : MonoBehaviour {
 			dropBlock(block_coords[i][0], 1.75f, block_coords[i][1], randColor());
 			
 		}
+
+		for(int i = 0; i < block_coords.Count; i++) {
+			
+			dropBlock(block_coords[i][0], 2.75f, block_coords[i][1], randColor());
+			
+		}
+		
+		for(int i = 0; i < block_coords.Count; i++) {
+			
+			dropBlock(block_coords[i][0], 3.75f, block_coords[i][1], randColor());
+			
+		}		
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 			
 			int r = Random.Range(0,2);			
 			if(r == 1) {
-				dropBlock(block_coords[i][0], 2.75f, block_coords[i][1], randColor());
+				dropBlock(block_coords[i][0], 4.75f, block_coords[i][1], randColor());
 			}
 			
 		}
@@ -585,9 +601,9 @@ public class BlockManager : MonoBehaviour {
 			this.selector2 = sel2;
 			this.selectorIndex = blocks.IndexOf(newSelector);
 			this.selector.renderer.material.shader = Shader.Find("Decal");
-			this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex);
+			this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex2);
 			this.selector2.renderer.material.shader = Shader.Find("Decal");
-			this.selector2.renderer.material.SetTexture("_DecalTex", this.selectorTex);
+			this.selector2.renderer.material.SetTexture("_DecalTex", this.selectorTex2);
 			
 		} else {
 		
