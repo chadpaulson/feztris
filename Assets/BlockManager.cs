@@ -7,6 +7,7 @@ public class BlockManager : MonoBehaviour {
 	
 	public GameObject block;
 	public Texture selectorTex;
+	public Texture selectorTex2;
 	public bool selectorClear;
 	public bool newCubes = false;
 	private int lastColorIndex;
@@ -111,12 +112,7 @@ public class BlockManager : MonoBehaviour {
 	
 	
 	void reset() {
-	
-		//CancelInvoke();
-		
-		//initReset();
-		
-		
+			
 		int count = blocks.Count;
 		List<GameObject> sons = new List<GameObject>();
 		foreach(GameObject b in blocks) {
@@ -154,7 +150,7 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	public void initSelection() {
+	public void checkSelection() {
 	
 		StartCoroutine(delaySelection());
 		
@@ -163,9 +159,15 @@ public class BlockManager : MonoBehaviour {
 	
 	IEnumerator delaySelection() {
 	
-		yield return new WaitForSeconds(0.4f);
+		yield return new WaitForSeconds(0.1f);
 		if(this.selectorClear) {
-			newSelection();
+			if(this.selector && !this.selector2) {
+				updateSelector(this.selector);
+			} else if(this.selector2 && !this.selector) {
+				updateSelector(this.selector2);
+			} else if(!this.selector && !this.selector2) {
+				newSelection();
+			}
 		}
 		
 	}
@@ -550,20 +552,32 @@ public class BlockManager : MonoBehaviour {
 	
 	void updateSelector(GameObject newSelector) {
 	
-		if(this.selector) {
-			this.selector.renderer.material.shader = Shader.Find("Transparent/Diffuse");
-		}
-		if(this.selector2) {
-			this.selector2.renderer.material.shader = Shader.Find("Transparent/Diffuse");
-		}
 		this.selCursor = newSelector;
-		this.selector = newSelector;
-		this.selector2 = getSelectorHalf(this.selector);
-		this.selectorIndex = blocks.IndexOf(newSelector);
-		this.selector.renderer.material.shader = Shader.Find("Decal");
-		this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex);
-		this.selector2.renderer.material.shader = Shader.Find("Decal");
-		this.selector2.renderer.material.SetTexture("_DecalTex", this.selectorTex);
+		GameObject sel2 = getSelectorHalf(newSelector);
+		
+		if(sel2.CompareTag("block")) {
+		
+			this.selectorClear = false;
+			if(this.selector) {
+				this.selector.renderer.material.shader = Shader.Find("Transparent/Diffuse");
+			}
+			if(this.selector2) {
+				this.selector2.renderer.material.shader = Shader.Find("Transparent/Diffuse");
+			}
+			this.selector = newSelector;
+			this.selector2 = sel2;
+			this.selectorIndex = blocks.IndexOf(newSelector);
+			this.selector.renderer.material.shader = Shader.Find("Decal");
+			this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex);
+			this.selector2.renderer.material.shader = Shader.Find("Decal");
+			this.selector2.renderer.material.SetTexture("_DecalTex", this.selectorTex);
+			
+		} else {
+		
+			Debug.Log ("Going for broke");
+			toggleSelectorMode();
+			
+		}
 		
 	}	
 	
@@ -599,8 +613,9 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		if(clearBlocks(blocks: vBlocks)) {
-			//Debug.Log ("Cleared from Rotation");
-		}		
+			this.selectorClear = true;
+			checkSelection();
+		}
 		
 	}
 	
