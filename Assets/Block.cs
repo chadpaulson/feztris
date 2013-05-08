@@ -5,7 +5,14 @@ using System.Collections.Generic;
 public class Block : MonoBehaviour {
 	
 	
-	public BlockManager manager;
+	//public BlockManager manager;
+	public AudioSource blockFall;
+	private BlockManager manager;
+	
+	void Awake() {
+		GameObject cubeManager = GameObject.FindGameObjectWithTag("manager");
+		manager = cubeManager.GetComponent<BlockManager>();	
+	}
 	
 	
 	// Use this for initialization
@@ -17,11 +24,24 @@ public class Block : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 	
-	}
+		
+	}	
 	
-	
-	void OnCollisionEnter(Collision col) {
-	
+	void OnCollisionExit(Collision col) {
+			
+		if(manager.newCubes && gameObject.rigidbody.velocity.y < 0f && manager.blockFall) {
+			manager.disableBlockFall();			
+			//Debug.Log (gameObject.rigidbody.velocity.y);
+			blockFall.Play();
+		}
+		
+		/*
+		if(this.manager.newCubes) {
+			blockFall.Play();
+		} else {
+			Debug.Log ("NOpe");
+		}*/
+		
 		/*
 		List<GameObject> blocks = new List<GameObject>{
 			gameObject,

@@ -10,6 +10,8 @@ public class BlockManager : MonoBehaviour {
 	public Texture selectorTex2;
 	public bool selectorClear;
 	public bool newCubes = false;
+	public AudioSource blockClear;
+	public bool blockFall = true;
 	private int lastColorIndex;
 	private int cubeSide;
 	private int pivots = 0;
@@ -72,6 +74,7 @@ public class BlockManager : MonoBehaviour {
 		
 		InvokeRepeating("newBlock", 2f, 1.5f);
 		InvokeRepeating("clearAllBlocks", 0.5f, 0.25f);
+		InvokeRepeating("enableBlockFall", 0.5f, 1f);
 
 	}
 	
@@ -141,6 +144,19 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
+	void enableBlockFall() {
+	
+		this.blockFall = true;
+		
+	}
+	
+	public void disableBlockFall() {
+	
+		this.blockFall = false;
+		
+	}
+	
+	
 	void createColors() {
 	
 		for(int i = 0; i < 7; i++) {
@@ -180,6 +196,7 @@ public class BlockManager : MonoBehaviour {
 	
 	IEnumerator delayReset() {
 	
+		newCubes = false;
 		CancelInvoke();
 		yield return new WaitForSeconds(2f);
 		reset();
@@ -233,6 +250,8 @@ public class BlockManager : MonoBehaviour {
 	
 		if(!newCubes) {
 			newCubes = true;
+		} else {
+			Debug.Log("It's on");	
 		}
 		
 		int i = Random.Range(0, block_coords.Count);
@@ -613,6 +632,7 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		if(clearBlocks(blocks: vBlocks)) {
+			blockClear.PlayDelayed(0.05f);
 			this.selectorClear = true;
 			checkSelection();
 		}
