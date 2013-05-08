@@ -69,7 +69,9 @@ public class BlockManager : MonoBehaviour {
 		rotateCube();
 		
 		initRepeats();
-
+		
+		Screen.sleepTimeout = 0;
+		
 	}
 	
 	
