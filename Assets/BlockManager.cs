@@ -250,8 +250,6 @@ public class BlockManager : MonoBehaviour {
 	
 		if(!newCubes) {
 			newCubes = true;
-		} else {
-			Debug.Log("It's on");	
 		}
 		
 		int i = Random.Range(0, block_coords.Count);
@@ -593,7 +591,6 @@ public class BlockManager : MonoBehaviour {
 			
 		} else {
 		
-			Debug.Log ("Going for broke");
 			toggleSelectorMode();
 			
 		}
@@ -708,12 +705,11 @@ public class BlockManager : MonoBehaviour {
 				
 		if(Physics.Raycast(block.transform.position, hitDirection, out hit, hitDistance)) {
 			
-			/*if(hit.collider.gameObject.CompareTag("block") && 
-				hit.collider.gameObject.renderer.material.color == block.renderer.gameObject.renderer.material.color) {*/
 			if(hit.collider.gameObject.CompareTag("block") && 
 				hit.collider.gameObject.renderer.material.color.r == block.renderer.gameObject.renderer.material.color.r && 
 				hit.collider.gameObject.renderer.material.color.g == block.renderer.gameObject.renderer.material.color.g &&
-				hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b) {			
+				hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b &&
+				hit.collider.gameObject.rigidbody.velocity.y >= 0f) {
 			
 				return hit.collider.gameObject;
 				
@@ -729,7 +725,8 @@ public class BlockManager : MonoBehaviour {
 				if(hit.collider.gameObject.CompareTag("block") && 
 					hit.collider.gameObject.renderer.material.color.r == block.renderer.gameObject.renderer.material.color.r && 
 					hit.collider.gameObject.renderer.material.color.g == block.renderer.gameObject.renderer.material.color.g &&
-					hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b) {
+					hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b &&
+					hit.collider.gameObject.rigidbody.velocity.y >= 0f) {
 				
 					direction = Vector3.forward;
 					return hit.collider.gameObject;
