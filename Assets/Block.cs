@@ -9,6 +9,7 @@ public class Block : MonoBehaviour {
 	public AudioSource blockFall;
 	private BlockManager manager;
 	
+	
 	void Awake() {
 		GameObject cubeManager = GameObject.FindGameObjectWithTag("manager");
 		manager = cubeManager.GetComponent<BlockManager>();	
@@ -27,33 +28,28 @@ public class Block : MonoBehaviour {
 		
 	}	
 	
+	
 	void OnCollisionExit(Collision col) {
 			
 		if(manager.newCubes && gameObject.rigidbody.velocity.y < 0f && manager.blockFall) {
 			manager.disableBlockFall();			
-			//Debug.Log (gameObject.rigidbody.velocity.y);
 			blockFall.Play();
 		}
+				
+	}
+	
+	
+	public void nukeBlock() {
+	
+		StartCoroutine(delayNuke());
 		
-		/*
-		if(this.manager.newCubes) {
-			blockFall.Play();
-		} else {
-			Debug.Log ("NOpe");
-		}*/
-		
-		/*
-		List<GameObject> blocks = new List<GameObject>{
-			gameObject,
-			col.collider.gameObject,
-		};
-		
-		if(manager.newCubes) {
-			if(manager.clearBlocks(blocks: blocks)) {
-				manager.selectorClear = true;
-				manager.initSelection();
-			}
-		}*/
+	}
+	
+	
+	IEnumerator delayNuke() {
+	
+		yield return new WaitForSeconds(0.5f);
+		manager.removeBlock(gameObject);
 		
 	}
 

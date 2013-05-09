@@ -12,6 +12,7 @@ public class BlockManager : MonoBehaviour {
 	public bool newCubes = false;
 	public AudioSource blockClear;
 	public bool blockFall = true;
+	private int gameMode = 0;
 	private int lastColorIndex;
 	private int cubeSide;
 	private int pivots = 0;
@@ -106,8 +107,30 @@ public class BlockManager : MonoBehaviour {
 			initReset();	
 		}
 		
-		clearAllBlocks();
+		if(Input.GetButtonDown("ToggleMode")) {
+			toggleGameMode();
+		}
 
+	}
+	
+	
+	void FixedUpdate() {
+		
+		clearAllBlocks();
+		
+	}
+	
+
+	void toggleGameMode() {
+	
+		if(this.gameMode == 0) {
+			this.gameMode = 1;
+		} else {
+			this.gameMode = 0;
+		}
+		
+		initReset();
+		
 	}
 	
 	
@@ -195,7 +218,7 @@ public class BlockManager : MonoBehaviour {
 		
 		InvokeRepeating("newBlock", 2f, 1.5f);
 		//InvokeRepeating("clearAllBlocks", 0.5f, 0.1f);
-		InvokeRepeating("enableBlockFall", 0.5f, 1f);
+		InvokeRepeating("enableBlockFall", 0.5f, 1.5f);
 		
 	}
 	
@@ -634,7 +657,7 @@ public class BlockManager : MonoBehaviour {
 		newSelection();
 		
 	}
-	
+
 	
 	void clearAllBlocks() {
 		
@@ -647,7 +670,11 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		if(clearBlocks(blocks: vBlocks)) {
-			blockClear.PlayDelayed(0.05f);
+			if(this.gameMode == 0) {
+				blockClear.PlayDelayed(0.05f);
+			} else if(this.gameMode == 1) {
+				blockClear.PlayDelayed(0.05f); // change this up later
+			}
 			this.selectorClear = true;
 			checkSelection();
 		}
@@ -689,7 +716,14 @@ public class BlockManager : MonoBehaviour {
 		if(matches.Count > 0) {
 			
 			foreach(GameObject match in matches) {
-				removeBlock(match);
+				if(this.gameMode == 0) {
+					removeBlock(match);
+				} else if(this.gameMode == 1) {
+					match.rigidbody.constraints = RigidbodyConstraints.None;
+					match.rigidbody.AddForce(transform.TransformDirection(Vector3.back * 100000));
+					Block bScript = match.GetComponent<Block>();
+					bScript.nukeBlock();
+				}
 			}
 			
 			//Debug.Log ("Adios! (" + matches.Count + ")");
@@ -703,7 +737,7 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	void removeBlock(GameObject block) {
+	public void removeBlock(GameObject block) {
 		
 		int i = this.blocks.IndexOf(block);
 		
