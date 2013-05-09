@@ -194,7 +194,11 @@ public class BlockManager : MonoBehaviour {
 	
 	IEnumerator delaySelection() {
 	
-		yield return new WaitForSeconds(0.1f);
+		if(this.gameMode == 0) {
+			yield return new WaitForSeconds(0.1f);
+		} else if(this.gameMode == 1) {
+			yield return new WaitForSeconds(0.3f);
+		}
 		if(this.selectorClear) {
 			if(this.selector && !this.selector2) {
 				updateSelector(this.selector);

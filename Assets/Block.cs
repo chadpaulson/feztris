@@ -48,7 +48,7 @@ public class Block : MonoBehaviour {
 	
 	IEnumerator delayNuke() {
 	
-		yield return new WaitForSeconds(0.5f);
+		yield return new WaitForSeconds(0.2f);
 		manager.removeBlock(gameObject);
 		
 	}
