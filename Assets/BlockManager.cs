@@ -110,6 +110,10 @@ public class BlockManager : MonoBehaviour {
 		if(Input.GetButtonDown("ToggleMode")) {
 			toggleGameMode();
 		}
+		
+		if(Input.GetKey("escape")) {
+			System.Diagnostics.Process.GetCurrentProcess().Kill();	
+		}
 
 	}
 	
