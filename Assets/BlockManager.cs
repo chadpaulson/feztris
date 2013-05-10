@@ -12,8 +12,9 @@ public class BlockManager : MonoBehaviour {
 	public bool selectorClear;
 	public bool newCubes = false;	
 	public bool blockFall = true;
-	public int cubeSide;	
-	public AudioSource invaderHit;	
+	public int cubeSide;
+	public AudioSource invaderHit;
+	private GUIText modeDisplay;	
 	private int gameMode = 0; // 0 - default, 1 - invader
 	private int lastColorIndex;
 	private int pivots = 0;
@@ -23,7 +24,6 @@ public class BlockManager : MonoBehaviour {
 	private GameObject blnk;
 	private AudioSource blockClear;
 	private AudioSource blockPop;
-
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
 	private int selectorIndex;
 	private int selector2Index;
@@ -70,6 +70,10 @@ public class BlockManager : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
+		
+		GameObject modeGUI = GameObject.FindGameObjectWithTag("modeD");
+		this.modeDisplay = modeGUI.GetComponent<GUIText>();
+		this.modeDisplay.text = "Mode: Classic";
 		
 		this.blnk = new GameObject();
 		
@@ -142,8 +146,10 @@ public class BlockManager : MonoBehaviour {
 	
 		if(this.gameMode == 0) {
 			this.gameMode = 1;
+			this.modeDisplay.text = "Mode: Invader";
 		} else {
 			this.gameMode = 0;
+			this.modeDisplay.text = "Mode: Classic";
 		}
 		
 		initReset();
