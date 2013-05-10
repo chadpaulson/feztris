@@ -144,12 +144,12 @@ public class BlockManager : MonoBehaviour {
 
 	void toggleGameMode() {
 	
+		this.modeDisplay.text = "";
+		
 		if(this.gameMode == 0) {
 			this.gameMode = 1;
-			this.modeDisplay.text = "Mode: Invader";
 		} else {
 			this.gameMode = 0;
-			this.modeDisplay.text = "Mode: Classic";
 		}
 		
 		initReset();
@@ -191,6 +191,12 @@ public class BlockManager : MonoBehaviour {
 				}
 				
 			}
+			
+			this.modeDisplay.text = "Mode: Invader";
+			
+		} else {
+			
+			this.modeDisplay.text = "Mode: Classic";
 			
 		}
 		
