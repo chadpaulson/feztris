@@ -175,23 +175,23 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		
+
+		int c = this.invaders.Count;
+		List<GameObject> invaderClones = new List<GameObject>();
+		foreach(GameObject invader in this.invaders) {
+			invaderClones.Add(invader);
+		}
+		
+		if(c > 0) {
+			
+			for(int i = 0; i < c; i++) {
+				removeInvader(invaderClones[i]);	
+			}
+			
+		}		
 		
 		if(this.gameMode == 1) {
-		
-			int c = this.invaders.Count;
-			List<GameObject> invaderClones = new List<GameObject>();
-			foreach(GameObject invader in this.invaders) {
-				invaderClones.Add(invader);
-			}
-			
-			if(c > 0) {
-				
-				for(int i = 0; i < c; i++) {
-					removeInvader(invaderClones[i]);	
-				}
-				
-			}
-			
+					
 			this.modeDisplay.text = "Mode: Invader";
 			
 		} else {
