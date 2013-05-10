@@ -7,7 +7,6 @@ public class Invader : MonoBehaviour {
 	private bool climb = false;
 	private bool hit = false;
 	private BlockManager manager;
-	private AudioSource invaderHit;
 	private AudioSource invaderLand;
 	
 	void Awake() {
@@ -19,8 +18,7 @@ public class Invader : MonoBehaviour {
 	void Start () {
 	
 		AudioSource[] audioSources = (AudioSource[])GetComponents<AudioSource>();
-		this.invaderHit = audioSources[0];
-		this.invaderLand = audioSources[1];
+		this.invaderLand = audioSources[0];
 		
 	}
 	
@@ -58,11 +56,11 @@ public class Invader : MonoBehaviour {
 	
 			if(col.relativeVelocity.magnitude > 1f && !this.hit) {
 				this.hit = true;
-				Debug.Log ("Hit Invader!");
+				//Debug.Log ("Hit Invader!");
 				this.climb = false;
 				gameObject.rigidbody.constraints = RigidbodyConstraints.None;
 				gameObject.rigidbody.AddForce(col.rigidbody.velocity * 100000);
-				this.invaderHit.PlayDelayed(0.6f);
+				manager.invaderHit.PlayDelayed(0.6f);
 				Invoke("nukeMe", 1.4f);
 			
 			}

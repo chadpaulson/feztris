@@ -13,6 +13,7 @@ public class BlockManager : MonoBehaviour {
 	public bool newCubes = false;	
 	public bool blockFall = true;
 	public int cubeSide;	
+	public AudioSource invaderHit;	
 	private int gameMode = 0; // 0 - default, 1 - invader
 	private int lastColorIndex;
 	private int pivots = 0;
@@ -21,7 +22,8 @@ public class BlockManager : MonoBehaviour {
 	private GameObject selector2;
 	private GameObject blnk;
 	private AudioSource blockClear;
-	private AudioSource blockPop;	
+	private AudioSource blockPop;
+
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
 	private int selectorIndex;
 	private int selector2Index;
@@ -74,6 +76,7 @@ public class BlockManager : MonoBehaviour {
 		AudioSource[] audioSources = (AudioSource[])GetComponents<AudioSource>();
 		this.blockClear = audioSources[0];
 		this.blockPop = audioSources[1];
+		this.invaderHit = audioSources[2];
 		
 		initBlocks();
 		
@@ -255,7 +258,7 @@ public class BlockManager : MonoBehaviour {
 		
 		InvokeRepeating("newBlock", 2f, 1.5f);
 		if(this.gameMode == 1) {
-			InvokeRepeating("newInvader", 3f, 15f);	
+			InvokeRepeating("newInvader", 3f, 8f);	
 		}
 		InvokeRepeating("enableBlockFall", 0.5f, 1.5f);
 		
@@ -358,11 +361,6 @@ public class BlockManager : MonoBehaviour {
 	
 	List<float> setInvaderCoords(float x, float z) {
 		
-		/*
-			x = 3,
-			z = 3,
-			x = -2,
-			z = -2*/
 		
 		int i = Random.Range(0,2);		
 		
@@ -759,8 +757,6 @@ public class BlockManager : MonoBehaviour {
 		} else if(angle == 270f) {
 			this.cubeSide = 4;
 		}
-				
-		//Debug.Log ("Side: " + this.cubeSide);
 		
 		newSelection();
 		
@@ -821,8 +817,6 @@ public class BlockManager : MonoBehaviour {
 			matches = getMatching(blocks: blocks);
 		}
 		
-		//Debug.Log ("M: " + matches.Count);
-		
 		if(matches.Count > 0) {
 			
 			foreach(GameObject match in matches) {
@@ -835,8 +829,6 @@ public class BlockManager : MonoBehaviour {
 					bScript.nukeBlock();
 				}
 			}
-			
-			//Debug.Log ("Adios! (" + matches.Count + ")");
 						
 			return true;
 			
@@ -1007,8 +999,6 @@ public class BlockManager : MonoBehaviour {
 			if(addBlock && !matches.Contains(matchingBlock)) {
 				matches.Add(matchingBlock);	
 			}
-			
-			//Debug.Log ("H: " + hor.Count + " V: " + ver.Count);
 			
 		}
 		
