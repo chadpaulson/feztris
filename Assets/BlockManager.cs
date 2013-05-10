@@ -6,19 +6,22 @@ public class BlockManager : MonoBehaviour {
 	
 	
 	public GameObject block;
+	public GameObject invader;
 	public Texture selectorTex;
 	public Texture selectorTex2;
 	public bool selectorClear;
-	public bool newCubes = false;
-	public AudioSource blockClear;
+	public bool newCubes = false;	
 	public bool blockFall = true;
-	private int gameMode = 0;
+	public int cubeSide;	
+	private int gameMode = 0; // 0 - default, 1 - invader
 	private int lastColorIndex;
-	private int cubeSide;
 	private int pivots = 0;
 	private GameObject selCursor;
 	private GameObject selector;
 	private GameObject selector2;
+	private GameObject blnk;
+	private AudioSource blockClear;
+	private AudioSource blockPop;	
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
 	private int selectorIndex;
 	private int selector2Index;
@@ -26,6 +29,7 @@ public class BlockManager : MonoBehaviour {
 	private float cubeAlpha = 1.0f;
 	private float bgAlpha = 0.6f;
 	private List<GameObject> blocks = new List<GameObject>();
+	private List<GameObject> invaders = new List<GameObject>();
 	private const GameObject defaultBlock = null;
 	private const List<GameObject> defaultBlocks = null;	
 	private List<Color> blockColors = new List<Color>{
@@ -64,6 +68,12 @@ public class BlockManager : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
+		
+		this.blnk = new GameObject();
+		
+		AudioSource[] audioSources = (AudioSource[])GetComponents<AudioSource>();
+		this.blockClear = audioSources[0];
+		this.blockPop = audioSources[1];
 		
 		initBlocks();
 		
@@ -155,8 +165,27 @@ public class BlockManager : MonoBehaviour {
 			}
 			
 		}
+		
+		
+		if(this.gameMode == 1) {
+		
+			int c = this.invaders.Count;
+			List<GameObject> invaderClones = new List<GameObject>();
+			foreach(GameObject invader in this.invaders) {
+				invaderClones.Add(invader);
+			}
+			
+			if(c > 0) {
 				
-		//block_coords.Add (new List<float>(new float[] {2f,-1f}));
+				for(int i = 0; i < c; i++) {
+					removeInvader(invaderClones[i]);	
+				}
+				
+			}
+			
+		}
+		
+		
 		initBlocks();
 		
 		// init selector
@@ -225,7 +254,9 @@ public class BlockManager : MonoBehaviour {
 	void initRepeats() {
 		
 		InvokeRepeating("newBlock", 2f, 1.5f);
-		//InvokeRepeating("clearAllBlocks", 0.5f, 0.1f);
+		if(this.gameMode == 1) {
+			InvokeRepeating("newInvader", 3f, 15f);	
+		}
 		InvokeRepeating("enableBlockFall", 0.5f, 1.5f);
 		
 	}
@@ -294,6 +325,61 @@ public class BlockManager : MonoBehaviour {
 		
 		
 	}
+	
+	
+	void newInvader() {
+	
+		int i = Random.Range(0, block_coords.Count);
+		List<float> invader_coords = setInvaderCoords(block_coords[i][0], block_coords[i][1]);
+		dropInvader(invader_coords[0], 19f, invader_coords[1]);
+		
+	}
+	
+	
+	void dropInvader(float x, float y, float z) {
+		
+		invaders.Add((GameObject) Instantiate(invader, new Vector3(x, y, z), transform.rotation));
+		
+	}
+	
+	
+	List<float> setInvaderCoords(float x, float z) {
+		
+		/*
+			x = 3,
+			z = 3,
+			x = -2,
+			z = -2*/
+		
+		int i = Random.Range(0,2);		
+		
+		
+		if(x == 3f && z == 3f) {
+			if(i == 0) {
+				x += 0.7f;	
+			} else {
+				z += 0.7f;
+			}
+		} else if(x == -2 && z == -2) {
+			if(i == 0) {
+				x += -0.7f;	
+			} else {
+				z += -0.7f;
+			}			
+		} else if(x == 3) {
+			x += 0.7f;
+		} else if(z == 3) {
+			z += 0.7f;
+		} else if(x == -2) {
+			x += -0.7f;
+		} else if(z == -2) {
+			z += -0.7f;
+		}
+		
+		return new List<float>{x, z};
+		
+	}
+	
 	
 	void newBlock() {
 	
@@ -556,8 +642,7 @@ public class BlockManager : MonoBehaviour {
 				return hit.collider.gameObject;	
 			} else {
 
-				GameObject obj = new GameObject();
-				return obj;
+				return this.blnk;
 				
 			}
 			
@@ -662,6 +747,8 @@ public class BlockManager : MonoBehaviour {
 			this.cubeSide = 4;
 		}
 				
+		//Debug.Log ("Side: " + this.cubeSide);
+		
 		newSelection();
 		
 	}
@@ -681,7 +768,7 @@ public class BlockManager : MonoBehaviour {
 			if(this.gameMode == 0) {
 				blockClear.PlayDelayed(0.05f);
 			} else if(this.gameMode == 1) {
-				blockClear.PlayDelayed(0.05f); // change this up later
+				blockPop.PlayDelayed(0.05f); // change this up later
 			}
 			this.selectorClear = true;
 			checkSelection();
@@ -745,6 +832,18 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
+	public void removeInvader(GameObject invader) {
+	
+		int i = this.invaders.IndexOf(invader);
+		
+		if(invaders[i]) {
+			Destroy(this.invaders[i]);
+			this.invaders.RemoveAt(i);
+		}
+		
+	}
+	
+	
 	public void removeBlock(GameObject block) {
 		
 		int i = this.blocks.IndexOf(block);
@@ -797,8 +896,7 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 
-		GameObject obj = new GameObject();
-		return obj;
+		return this.blnk;
 		
 	}
 	
