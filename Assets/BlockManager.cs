@@ -33,9 +33,9 @@ public class BlockManager : MonoBehaviour {
 	private const GameObject defaultBlock = null;
 	private const List<GameObject> defaultBlocks = null;	
 	private List<Color> blockColors = new List<Color>{
-		//new Color(255f/255f, 46f/255f, 3f/255f), // red
+		new Color(255f/255f, 46f/255f, 3f/255f), // red
 		new Color(40f/255f, 130f/255f, 51f/255f), // green
-		//new Color(56f/255f, 98f/255f, 252f/255f), // blue		
+		new Color(56f/255f, 98f/255f, 252f/255f), // blue		
 		new Color(56f/255f, 243f/255f, 252f/255f), // aqua
 		new Color(88f/255f, 219f/255f, 103f/255f), // light green
 		new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
@@ -312,12 +312,25 @@ public class BlockManager : MonoBehaviour {
 			dropBlock(block_coords[i][0], 3.75f, block_coords[i][1], randColor());
 			
 		}		
+
+		
+		for(int i = 0; i < block_coords.Count; i++) {
+			
+			dropBlock(block_coords[i][0], 4.75f, block_coords[i][1], randColor());
+			
+		}
+
+		for(int i = 0; i < block_coords.Count; i++) {
+			
+			dropBlock(block_coords[i][0], 5.75f, block_coords[i][1], randColor());
+			
+		}		
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 			
 			int r = Random.Range(0,2);			
 			if(r == 1) {
-				dropBlock(block_coords[i][0], 4.75f, block_coords[i][1], randColor());
+				dropBlock(block_coords[i][0], 6.75f, block_coords[i][1], randColor());
 			}
 			
 		}
@@ -758,9 +771,9 @@ public class BlockManager : MonoBehaviour {
 		
 		// check for matches
 		List<GameObject> vBlocks = new List<GameObject>();
-		foreach(GameObject block in blocks) {
-			if(isBlockInSide(block)) {
-				vBlocks.Add(block);
+		foreach(GameObject b in this.blocks) {
+			if(isBlockInSide(b)) {
+				vBlocks.Add(b);
 			}
 			
 		}
@@ -807,7 +820,9 @@ public class BlockManager : MonoBehaviour {
 		} else if(block == null && blocks != null) {
 			matches = getMatching(blocks: blocks);
 		}
-				
+		
+		//Debug.Log ("M: " + matches.Count);
+		
 		if(matches.Count > 0) {
 			
 			foreach(GameObject match in matches) {
@@ -868,7 +883,7 @@ public class BlockManager : MonoBehaviour {
 				hit.collider.gameObject.renderer.material.color.r == block.renderer.gameObject.renderer.material.color.r && 
 				hit.collider.gameObject.renderer.material.color.g == block.renderer.gameObject.renderer.material.color.g &&
 				hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b &&
-				hit.collider.gameObject.rigidbody.velocity.y >= 0f) {
+				hit.collider.gameObject.rigidbody.velocity.y >= -0.03f) {
 			
 				return hit.collider.gameObject;
 				
@@ -885,7 +900,7 @@ public class BlockManager : MonoBehaviour {
 					hit.collider.gameObject.renderer.material.color.r == block.renderer.gameObject.renderer.material.color.r && 
 					hit.collider.gameObject.renderer.material.color.g == block.renderer.gameObject.renderer.material.color.g &&
 					hit.collider.gameObject.renderer.material.color.b == block.renderer.gameObject.renderer.material.color.b &&
-					hit.collider.gameObject.rigidbody.velocity.y >= 0f) {
+					hit.collider.gameObject.rigidbody.velocity.y >= -0.03f) {
 				
 					direction = Vector3.forward;
 					return hit.collider.gameObject;

@@ -3,7 +3,12 @@ using System.Collections;
 
 public class Invader : MonoBehaviour {
 	
+	private bool land = false;
+	private bool climb = false;
+	private bool hit = false;
 	private BlockManager manager;
+	private AudioSource invaderHit;
+	private AudioSource invaderLand;
 	
 	void Awake() {
 		GameObject cubeManager = GameObject.FindGameObjectWithTag("manager");
@@ -13,11 +18,23 @@ public class Invader : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 	
+		AudioSource[] audioSources = (AudioSource[])GetComponents<AudioSource>();
+		this.invaderHit = audioSources[0];
+		this.invaderLand = audioSources[1];
+		
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
+	}
+	
+	void FixedUpdate() {
+		
+		if(this.climb) {
+			gameObject.rigidbody.AddForce(Vector3.up * 77);
+		}
+		
 	}
 	
 	void nukeMe() {
@@ -28,34 +45,30 @@ public class Invader : MonoBehaviour {
 	
 	void OnCollisionEnter(Collision col) {
 		
-		//Debug.Log ("HIT");
 		
-		/*
-		if(col.gameObject.CompareTag("ground")) {
-			Debug.Log("Hit Ground");
-		}*/
+		if(col.gameObject.CompareTag("ground") && !this.land) {
+			this.land = true;
+			this.invaderLand.Play();
+			this.climb = true;
+			gameObject.GetComponent<TrailRenderer>().enabled = false;
+		}
+		
 		
 		if(col.gameObject.CompareTag("block")) {
-			
-			//Debug.Log("Hit Block");
-			
-			/*if(col.gameObject.rigidbody.velocity.x > 0.6f || col.gameObject.rigidbody.velocity.z > 0.6f || 
-				col.gameObject.rigidbody.velocity.x < -0.6f || col.gameObject.rigidbody.velocity.z < -0.6f) {*/
-			
-			if(col.relativeVelocity.magnitude > 2f) {
-			
+	
+			if(col.relativeVelocity.magnitude > 1f && !this.hit) {
+				this.hit = true;
+				Debug.Log ("Hit Invader!");
+				this.climb = false;
 				gameObject.rigidbody.constraints = RigidbodyConstraints.None;
-				gameObject.rigidbody.AddForce(transform.TransformDirection(Vector3.forward) * 33000);
-				Invoke("nukeMe", 1f);
+				gameObject.rigidbody.AddForce(col.rigidbody.velocity * 100000);
+				this.invaderHit.PlayDelayed(0.6f);
+				Invoke("nukeMe", 1.4f);
 			
-			}/* else {
-			
-				Debug.Log ("Conditional Not Met");
-				
-			}*/
-			
+			}
 			
 		}
+		
 		
 	}
 	

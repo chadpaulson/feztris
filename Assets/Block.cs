@@ -4,10 +4,11 @@ using System.Collections.Generic;
 
 public class Block : MonoBehaviour {
 	
-	
-	//public BlockManager manager;
+
 	public AudioSource blockFall;
 	private BlockManager manager;
+	
+	private bool logV = true;
 	
 	
 	void Awake() {
@@ -29,11 +30,34 @@ public class Block : MonoBehaviour {
 	}	
 	
 	
+	void FixedUpdate() {
+	
+		if(manager.newCubes && this.logV) {
+			//Debug.Log (gameObject.rigidbody.velocity.y);
+		}
+		
+	}
+	
+	
+	/*
+	void OnCollisionEnter(Collision col) {
+	
+		if(col.gameObject.CompareTag("invader")) {
+			col.gameObject.rigidbody.AddForce(transform.TransformDirection(Vector3.forward) * 10000);
+			Debug.Log ("Hit Invader!");
+		}
+		
+	}*/
+	
+	
 	void OnCollisionExit(Collision col) {
-			
-		if(manager.newCubes && gameObject.rigidbody.velocity.y < 0f && manager.blockFall) {
-			manager.disableBlockFall();			
-			blockFall.Play();
+		
+		if(col.gameObject.CompareTag("block") || col.gameObject.CompareTag("ground")) {
+			if(manager.newCubes && gameObject.rigidbody.velocity.y >= 0f && manager.blockFall) {
+				manager.disableBlockFall();			
+				blockFall.Play();
+				this.logV = false;
+			}
 		}
 				
 	}
