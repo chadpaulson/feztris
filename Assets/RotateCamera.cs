@@ -16,16 +16,34 @@ public class RotateCamera : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-			
-		if(Input.GetButtonDown("Rotate")) {
-			emptyObj.transform.Rotate(0, 90, 0);
-			blockManager.rotateCube();
-		}
 		
-		if(Input.GetButtonDown("RotateBack")) {
-			emptyObj.transform.Rotate(0,-90, 0);
-			blockManager.rotateCube();
-		}
+		#if UNITY_STANDALONE || UNITY_WEBPLAYER
+			if(Input.GetButtonDown("Rotate")) {
+				emptyObj.transform.Rotate(0, 90, 0);
+				blockManager.rotateCube();
+			}
+			if(Input.GetButtonDown("RotateBack")) {
+				emptyObj.transform.Rotate(0,-90, 0);
+				blockManager.rotateCube();
+			}
+		#endif
+		
+
+		#if UNITY_ANDROID
+			int fingerCount = 0;
+	        foreach (Touch touch in Input.touches) {
+				if (touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled)
+					fingerCount++;
+	            
+			}
+	        if (fingerCount > 0) {
+				if(blockManager.canRotate) {
+					blockManager.canRotate = false;				
+					emptyObj.transform.Rotate(0, 90, 0);
+					blockManager.rotateCube();
+				}
+			}
+		#endif
 		
 	}
 	

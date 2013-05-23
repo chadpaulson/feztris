@@ -12,6 +12,7 @@ public class BlockManager : MonoBehaviour {
 	public bool selectorClear;
 	public bool newCubes = false;	
 	public bool blockFall = true;
+	public bool canRotate = true;
 	public int cubeSide;
 	public AudioSource invaderHit;
 	private GUIText modeDisplay;	
@@ -25,7 +26,6 @@ public class BlockManager : MonoBehaviour {
 	private AudioSource blockClear;
 	private AudioSource blockPop;
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
-	private int selectorIndex;
 	private int selector2Index;
 	private float[] selectorSkip = new float[0];
 	private float cubeAlpha = 1.0f;
@@ -96,48 +96,49 @@ public class BlockManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		
-		if(Input.GetButtonDown("Right")) {
-			moveSelector("right");
-		}
+		#if UNITY_STANDALONE
+			if(Input.GetButtonDown("Right")) {
+				moveSelector("right");
+			}
+			if(Input.GetButtonDown("Left")) {
+				moveSelector("left");
+			}
+			if(Input.GetButtonDown("Up")) {
+				moveSelector("up");	
+			}
+			if(Input.GetButtonDown("Down")) {
+				moveSelector("down");
+			}
+			if(Input.GetButtonDown("SwapBlocks")) {
+				swapIt();
+			}
+			if(Input.GetButtonDown("ToggleSelector")) {
+				toggleSelectorMode();
+			}
+			if(Input.GetButtonDown("Reset")) {
+				initReset();	
+			}
+			if(Input.GetButtonDown("ToggleMode")) {
+				toggleGameMode();
+			}
+			if(Input.GetKey("escape")) {
+				System.Diagnostics.Process.GetCurrentProcess().Kill();	
+			}
+		#endif
+
 		
-		if(Input.GetButtonDown("Left")) {
-			moveSelector("left");
-		}
-		
-		if(Input.GetButtonDown("Up")) {
-			moveSelector("up");	
-		}
-		
-		if(Input.GetButtonDown("Down")) {
-			moveSelector("down");
-		}
-		
-		if(Input.GetButtonDown("SwapBlocks")) {
-			swapIt();
-		}
-		
-		if(Input.GetButtonDown("ToggleSelector")) {
-			toggleSelectorMode();
-		}
-		
-		if(Input.GetButtonDown("Reset")) {
-			initReset();	
-		}
-		
-		if(Input.GetButtonDown("ToggleMode")) {
-			toggleGameMode();
-		}
-		
-		if(Input.GetKey("escape")) {
-			System.Diagnostics.Process.GetCurrentProcess().Kill();	
-		}
+		#if UNITY_ANDROID
+			if(Input.GetKeyDown(KeyCode.Escape)) {
+				Application.Quit();
+			}			
+		#endif
 
 	}
 	
 	
 	void FixedUpdate() {
 		
-		clearAllBlocks();
+		//clearAllBlocks();
 		
 	}
 	
@@ -265,15 +266,24 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	void enableRotation() {
+		this.canRotate = true;
+	}
 	
 	void initRepeats() {
 		
-		InvokeRepeating("newBlock", 2f, 1.5f);
+		InvokeRepeating("newBlock", 2f, 4.5f);
 		if(this.gameMode == 1) {
 			InvokeRepeating("newInvader", 3f, 8f);	
 		}
-		InvokeRepeating("enableBlockFall", 0.5f, 1.5f);
-		
+		InvokeRepeating("enableBlockFall", 0.5f, 3.5f);
+		#if UNITY_STANDALONE
+			InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
+		#endif
+		#if UNITY_ANDROID
+			InvokeRepeating("clearAllBlocks", 0.5f, 2.3f);
+			InvokeRepeating("enableRotation", 0.5f, 1.0f);
+		#endif
 	}
 	
 	
@@ -322,6 +332,7 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 		
+		/*
 		for(int i = 0; i < block_coords.Count; i++) {
 			
 			dropBlock(block_coords[i][0], 3.75f, block_coords[i][1], randColor());
@@ -339,13 +350,13 @@ public class BlockManager : MonoBehaviour {
 			
 			dropBlock(block_coords[i][0], 5.75f, block_coords[i][1], randColor());
 			
-		}		
+		}*/
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 			
 			int r = Random.Range(0,2);			
 			if(r == 1) {
-				dropBlock(block_coords[i][0], 6.75f, block_coords[i][1], randColor());
+				dropBlock(block_coords[i][0], 3.75f, block_coords[i][1], randColor());
 			}
 			
 		}
@@ -740,7 +751,6 @@ public class BlockManager : MonoBehaviour {
 			}
 			this.selector = newSelector;
 			this.selector2 = sel2;
-			this.selectorIndex = blocks.IndexOf(newSelector);
 			this.selector.renderer.material.shader = Shader.Find("Decal");
 			this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex2);
 			this.selector2.renderer.material.shader = Shader.Find("Decal");
