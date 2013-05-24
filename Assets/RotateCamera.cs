@@ -17,7 +17,7 @@ public class RotateCamera : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		
-		#if UNITY_STANDALONE || UNITY_WEBPLAYER
+		#if UNITY_STANDALONE || UNITY_WEBPLAYER || UNITY_EDITOR
 			if(Input.GetButtonDown("Rotate")) {
 				emptyObj.transform.Rotate(0, 90, 0);
 				blockManager.rotateCube();

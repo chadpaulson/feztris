@@ -96,7 +96,7 @@ public class BlockManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		
-		#if UNITY_STANDALONE
+		#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
 			if(Input.GetButtonDown("Right")) {
 				moveSelector("right");
 			}
