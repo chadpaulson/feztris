@@ -11,6 +11,13 @@ public class RotateCamera : MonoBehaviour {
 	
 		emptyObj = GameObject.Find("EmptyGameObject");
 		blockManager = emptyObj.GetComponent<BlockManager>();
+		Camera cam = gameObject.GetComponent<Camera>();
+		#if UNITY_STANDALONE || UNITY_WEBPLAYER || UNITY_EDITOR
+		cam.fieldOfView = 60f;
+		#endif
+		#if UNITY_ANDROID
+		cam.fieldOfView = 50f;
+		#endif
 		
 	}
 	
@@ -28,7 +35,8 @@ public class RotateCamera : MonoBehaviour {
 			}
 		#endif
 		
-
+		
+		/*
 		#if UNITY_ANDROID
 			int fingerCount = 0;
 	        foreach (Touch touch in Input.touches) {
@@ -43,7 +51,7 @@ public class RotateCamera : MonoBehaviour {
 					blockManager.rotateCube();
 				}
 			}
-		#endif
+		#endif */
 		
 	}
 	

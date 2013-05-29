@@ -15,6 +15,7 @@ public class BlockManager : MonoBehaviour {
 	public bool canRotate = true;
 	public int cubeSide;
 	public AudioSource invaderHit;
+	private int score = 0;
 	private GUIText modeDisplay;	
 	private int gameMode = 0; // 0 - default, 1 - invader
 	private int lastColorIndex;
@@ -66,7 +67,11 @@ public class BlockManager : MonoBehaviour {
 		new List<float>{1f,-2f},
 		new List<float>{2f,-2f},
 	};
-	
+	#if UNITY_ANDROID
+	private Touch firstTouch;
+	private bool touchStart = false;
+	private GameObject touchBlock = null;
+	#endif
 	
 	// Use this for initialization
 	void Start () {
@@ -128,11 +133,104 @@ public class BlockManager : MonoBehaviour {
 
 		
 		#if UNITY_ANDROID
+		
+			
+	        foreach (Touch touch in Input.touches) {
+
+				if(touch.phase == TouchPhase.Began && !this.touchStart) {
+					this.firstTouch = touch;
+					this.touchStart = true;
+				
+					RaycastHit touchHit;
+					Ray touchRay = Camera.main.ScreenPointToRay(touch.position);
+					if(Physics.Raycast(touchRay, out touchHit, Mathf.Infinity)) {
+						this.touchBlock = touchHit.rigidbody.gameObject;
+					}
+					
+				}
+			
+				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock == null) {
+				
+					GameObject emptyObj = GameObject.Find("EmptyGameObject");
+					if(touch.position.x > this.firstTouch.position.x) {
+						// right
+						emptyObj.transform.Rotate(0, 90, 0);
+						this.rotateCube();
+					} else {
+						// left
+						emptyObj.transform.Rotate(0,-90, 0);
+						this.rotateCube();					
+					}				
+				
+				}
+			
+				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null) {
+					float hDiff;
+					float vDiff;
+					string[] swipeDir = new string[2];
+					Vector3	hDirection;
+				
+					if(touch.position.x > this.firstTouch.position.x) {
+						hDiff = touch.position.x - this.firstTouch.position.x;
+						swipeDir[0] = "right";
+					} else {
+						hDiff = this.firstTouch.position.x - touch.position.x;
+						swipeDir[0] = "left";
+					}
+				
+					if(touch.position.y > this.firstTouch.position.y) {
+						vDiff = touch.position.y - this.firstTouch.position.y;
+						swipeDir[1] = "up";
+					} else {
+						vDiff = this.firstTouch.position.y - touch.position.y;
+						swipeDir[1] = "down";
+					}
+				
+					if(Mathf.Abs(hDiff) > Mathf.Abs(vDiff)) {
+						
+						if(swipeDir[0] == "right") {
+							hDirection = Vector3.right;
+						} else {
+							hDirection = Vector3.left;
+						}
+						
+					
+					} else {
+					
+						if(swipeDir[1] == "up") {
+							hDirection = Vector3.up;
+						} else {
+							hDirection = Vector3.down;
+						}
+					
+					}
+				
+					
+					GameObject sel2 = this.getSelectorTouch(this.touchBlock, hDirection);
+					if(sel2.CompareTag("block")) {
+						this.selector = this.touchBlock;
+						this.selector2 = sel2;
+						this.swapIt();
+					}
+						
+					this.touchBlock = null;
+				
+				}
+						
+				if(touch.phase == TouchPhase.Ended) {
+					this.touchStart = false;;	
+				}
+			
+			}		
+			
 			if(Input.GetKeyDown(KeyCode.Escape)) {
 				Application.Quit();
 			}			
 		#endif
-
+		
+		
+		this.modeDisplay.text = "Score: " + this.score.ToString("N0");
+		
 	}
 	
 	
@@ -272,7 +370,7 @@ public class BlockManager : MonoBehaviour {
 	
 	void initRepeats() {
 		
-		InvokeRepeating("newBlock", 2f, 4.5f);
+		InvokeRepeating("newBlock", 2f, 2.5f);
 		if(this.gameMode == 1) {
 			InvokeRepeating("newInvader", 3f, 8f);	
 		}
@@ -281,7 +379,7 @@ public class BlockManager : MonoBehaviour {
 			InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
 		#endif
 		#if UNITY_ANDROID
-			InvokeRepeating("clearAllBlocks", 0.5f, 2.3f);
+			InvokeRepeating("clearAllBlocks", 0.5f, 1.0f);
 			InvokeRepeating("enableRotation", 0.5f, 1.0f);
 		#endif
 	}
@@ -648,6 +746,20 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	#if UNITY_ANDROID
+	GameObject getSelectorTouch(GameObject cursor, Vector3 hDirection) {
+	
+		RaycastHit hit;
+		float hitDistance = 1f;
+		Vector3 hitDirection = transform.TransformDirection(hDirection);
+		if(Physics.Raycast(cursor.transform.position, hitDirection, out hit, hitDistance)) {
+			return hit.collider.gameObject;	
+		} else {
+			return this.blnk;
+		}
+		
+	}	
+	#endif
 	
 	GameObject getSelectorHalf(GameObject cursor) {
 	
@@ -850,6 +962,7 @@ public class BlockManager : MonoBehaviour {
 					Block bScript = match.GetComponent<Block>();
 					bScript.nukeBlock();
 				}
+				this.score += 10;
 			}
 						
 			return true;
