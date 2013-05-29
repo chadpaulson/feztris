@@ -370,7 +370,7 @@ public class BlockManager : MonoBehaviour {
 	
 	void initRepeats() {
 		
-		InvokeRepeating("newBlock", 2f, 2.5f);
+		InvokeRepeating("newBlock", 2f, 1.3f);
 		if(this.gameMode == 1) {
 			InvokeRepeating("newInvader", 3f, 8f);	
 		}
