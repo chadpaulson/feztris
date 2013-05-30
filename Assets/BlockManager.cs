@@ -13,6 +13,8 @@ public class BlockManager : MonoBehaviour {
 	public bool newCubes = false;	
 	public bool blockFall = true;
 	public bool canRotate = true;
+	public bool cubeRotation = false;
+	public bool colorSwap = false;
 	public int cubeSide;
 	public AudioSource invaderHit;
 	private int score = 0;
@@ -89,7 +91,7 @@ public class BlockManager : MonoBehaviour {
 		
 		initBlocks();
 		
-		rotateCube();
+		this.initCube();
 		
 		initRepeats();
 		
@@ -129,47 +131,42 @@ public class BlockManager : MonoBehaviour {
 			if(Input.GetKey("escape")) {
 				System.Diagnostics.Process.GetCurrentProcess().Kill();	
 			}
+			if(Input.GetButtonDown("Rotate")) {
+				int newSide = this.rotateCube("right");
+				StartCoroutine(moveCube(this.cubeSide, newSide));
+			}
+			if(Input.GetButtonDown("RotateBack")) {
+				int newSide = this.rotateCube("left");
+				StartCoroutine(moveCube(this.cubeSide, newSide));
+			}		
 		#endif
 
 		
 		#if UNITY_ANDROID
-		
-			
 	        foreach (Touch touch in Input.touches) {
-
 				if(touch.phase == TouchPhase.Began && !this.touchStart) {
 					this.firstTouch = touch;
 					this.touchStart = true;
-				
 					RaycastHit touchHit;
 					Ray touchRay = Camera.main.ScreenPointToRay(touch.position);
 					if(Physics.Raycast(touchRay, out touchHit, Mathf.Infinity)) {
 						this.touchBlock = touchHit.rigidbody.gameObject;
-					}
-					
+					}	
 				}
-			
 				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock == null) {
-				
-					GameObject emptyObj = GameObject.Find("EmptyGameObject");
 					if(touch.position.x > this.firstTouch.position.x) {
-						// right
-						emptyObj.transform.Rotate(0, 90, 0);
-						this.rotateCube();
+						int newSide = this.rotateCube("right");
+						StartCoroutine(moveCube(this.cubeSide, newSide));					
 					} else {
-						// left
-						emptyObj.transform.Rotate(0,-90, 0);
-						this.rotateCube();					
+						int newSide = this.rotateCube("left");
+						StartCoroutine(moveCube(this.cubeSide, newSide));				
 					}				
-				
 				}
-			
 				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null) {
 					float hDiff;
 					float vDiff;
 					string[] swipeDir = new string[2];
 					Vector3	hDirection;
-				
 					if(touch.position.x > this.firstTouch.position.x) {
 						hDiff = touch.position.x - this.firstTouch.position.x;
 						swipeDir[0] = "right";
@@ -177,7 +174,6 @@ public class BlockManager : MonoBehaviour {
 						hDiff = this.firstTouch.position.x - touch.position.x;
 						swipeDir[0] = "left";
 					}
-				
 					if(touch.position.y > this.firstTouch.position.y) {
 						vDiff = touch.position.y - this.firstTouch.position.y;
 						swipeDir[1] = "up";
@@ -185,52 +181,36 @@ public class BlockManager : MonoBehaviour {
 						vDiff = this.firstTouch.position.y - touch.position.y;
 						swipeDir[1] = "down";
 					}
-				
-					if(Mathf.Abs(hDiff) > Mathf.Abs(vDiff)) {
-						
+					if(Mathf.Abs(hDiff) > Mathf.Abs(vDiff)) {	
 						if(swipeDir[0] == "right") {
 							hDirection = Vector3.right;
 						} else {
 							hDirection = Vector3.left;
 						}
-						
-					
 					} else {
-					
 						if(swipeDir[1] == "up") {
 							hDirection = Vector3.up;
 						} else {
 							hDirection = Vector3.down;
 						}
-					
 					}
-				
-					
 					GameObject sel2 = this.getSelectorTouch(this.touchBlock, hDirection);
 					if(sel2.CompareTag("block")) {
 						this.selector = this.touchBlock;
 						this.selector2 = sel2;
 						this.swapIt();
-					}
-						
+					}	
 					this.touchBlock = null;
-				
-				}
-						
+				}		
 				if(touch.phase == TouchPhase.Ended) {
 					this.touchStart = false;;	
 				}
-			
 			}		
-			
 			if(Input.GetKeyDown(KeyCode.Escape)) {
 				Application.Quit();
 			}			
 		#endif
-		
-		
-		this.modeDisplay.text = "Score: " + this.score.ToString("N0");
-		
+				
 	}
 	
 	
@@ -258,6 +238,9 @@ public class BlockManager : MonoBehaviour {
 	
 	void reset() {
 			
+		this.score = 0;
+		this.modeDisplay.text = "Score: " + this.score.ToString("N0");
+		
 		int count = blocks.Count;
 		List<GameObject> sons = new List<GameObject>();
 		foreach(GameObject b in blocks) {
@@ -303,7 +286,7 @@ public class BlockManager : MonoBehaviour {
 		initBlocks();
 		
 		// init selector
-		rotateCube();
+		this.initCube();
 		
 		initRepeats();			
 				
@@ -375,7 +358,7 @@ public class BlockManager : MonoBehaviour {
 			InvokeRepeating("newInvader", 3f, 8f);	
 		}
 		InvokeRepeating("enableBlockFall", 0.5f, 3.5f);
-		#if UNITY_STANDALONE
+		#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
 			InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
 		#endif
 		#if UNITY_ANDROID
@@ -519,8 +502,10 @@ public class BlockManager : MonoBehaviour {
 			newCubes = true;
 		}
 		
-		int i = Random.Range(0, block_coords.Count);
-		dropBlock(block_coords[i][0], 19f, block_coords[i][1], randColor());
+		if(!this.cubeRotation) {
+			int i = Random.Range(0, block_coords.Count);
+			dropBlock(block_coords[i][0], 19f, block_coords[i][1], randColor());
+		}
 		
 	}
 	
@@ -718,17 +703,21 @@ public class BlockManager : MonoBehaviour {
 	
 	
 	void toggleSelectorMode() {
-			
-		if(this.selectorMode == 0) {
-			this.selectorMode = 1;
-		} else {
-			this.selectorMode = 0;
-		}
 		
-		if(isValidSelection(this.selCursor)) {
-			updateSelector(this.selCursor);
-		} else {
-			newSelection();
+		if(!this.colorSwap) {
+		
+			if(this.selectorMode == 0) {
+				this.selectorMode = 1;
+			} else {
+				this.selectorMode = 0;
+			}
+			
+			if(isValidSelection(this.selCursor)) {
+				updateSelector(this.selCursor);
+			} else {
+				newSelection();
+			}
+			
 		}
 			
 	}	
@@ -799,7 +788,7 @@ public class BlockManager : MonoBehaviour {
 	
 	void moveSelector(string direction) {
 			
-		if(this.selCursor) {
+		if(this.selCursor && !this.colorSwap) {
 		
 			Vector3 hitDirection = transform.TransformDirection(new Vector3(1, 0, 0));
 			RaycastHit hit;
@@ -838,7 +827,7 @@ public class BlockManager : MonoBehaviour {
 					
 			}
 			
-		} else {
+		} else if(!this.colorSwap) {
 			
 			newSelection();
 			
@@ -877,11 +866,9 @@ public class BlockManager : MonoBehaviour {
 	}	
 	
 	
-	public void rotateCube() {
-		
-		this.selectorSkip = new float[0];
+	private void updateCubeSide() {
+	
 		float angle = Mathf.Floor(transform.rotation.eulerAngles.y);
-		
 		if(angle == 0f) {
 			this.cubeSide = 1;
 		} else if(angle == 90f) {
@@ -892,7 +879,98 @@ public class BlockManager : MonoBehaviour {
 			this.cubeSide = 4;
 		}
 		
-		newSelection();
+	}
+	
+	
+	private float getAngleForCubeSide(int cubeSide) {
+		
+		if(cubeSide == 1){
+			return 0f;
+		} else if(cubeSide == 2) {
+			return 90f;
+		} else if(cubeSide == 3) {
+			return 180f;
+		} else if(cubeSide == 4) {
+			return 270f;	
+		}
+		
+		return -1f;
+		
+	}
+	
+	
+	private void initCube() {
+		
+		this.updateCubeSide();
+		this.selectorSkip = new float[0];
+		if(!this.colorSwap) {
+			newSelection();
+		}
+		
+	}
+	
+	
+	private IEnumerator swapColors(Color selColor, Color sel2Color, float swapTime = 0.56f) {
+		
+		if(this.colorSwap) {
+		
+			float i = 0f;
+			float rate = 1f/swapTime;
+			
+			while(i < 1f) {
+			
+				i = i + Time.deltaTime * rate;
+				if(this.selector2) {
+					this.selector2.renderer.material.color = Color.Lerp(this.selector2.renderer.material.color, selColor, Mathf.SmoothStep(0f, 1f, i));	
+				}
+				if(this.selector) {
+					this.selector.renderer.material.color = Color.Lerp(this.selector.renderer.material.color, sel2Color, Mathf.SmoothStep(0f, 1f, i));
+				}
+				
+				yield return null;				
+				
+			}
+			
+		}
+		this.colorSwap = false;
+		
+	}
+	
+	
+	private IEnumerator moveCube(int startSide, int newSide, float rotateTime = 0.2f) {
+		
+		this.cubeRotation = true;
+		this.cubeSide = newSide;
+		Quaternion newRotation = Quaternion.Euler(0, this.getAngleForCubeSide(newSide), 0);
+		Quaternion curRotation = Quaternion.Euler(0, this.getAngleForCubeSide(startSide), 0);
+		float i = 0f;
+		float rate = 1f/rotateTime;
+		while(i < 1f) {
+			i = i + Time.deltaTime * rate;
+			transform.rotation = Quaternion.Lerp(curRotation, newRotation, Mathf.SmoothStep(0f, 1f, i));
+			yield return null;
+		}
+		this.initCube();		
+		this.cubeRotation = false;
+		
+	}
+	
+	
+	public int rotateCube(string direction) {
+		
+		int newCubeSide = 0;
+		
+		if(direction == "right" && this.cubeSide < 4) {
+			newCubeSide = this.cubeSide + 1;
+		} else if(direction == "right" && this.cubeSide == 4) {
+			newCubeSide = 1;
+		} else if(direction == "left" && this.cubeSide > 1) {
+			newCubeSide = this.cubeSide - 1;
+		} else if(direction == "left" && this.cubeSide == 1) {
+			newCubeSide = 4;
+		}
+		
+		return newCubeSide;
 		
 	}
 
@@ -931,11 +1009,17 @@ public class BlockManager : MonoBehaviour {
 	void swapIt() {
 	
 		// swap colors
-		if(this.selector && this.selector2) {
+		if(this.selector && this.selector2 && !this.colorSwap) {
+			this.colorSwap = true;
 			Color selColor = this.selector.renderer.material.color;
 			Color sel2Color = this.selector2.renderer.material.color;
-			this.selector2.renderer.material.color = selColor;
-			this.selector.renderer.material.color = sel2Color;			
+			
+			//lerpedColor = Color.Lerp(Color.white, Color.black, Time.time);
+			StartCoroutine(swapColors(selColor,sel2Color));
+			
+			
+			//this.selector2.renderer.material.color = selColor;
+			//this.selector.renderer.material.color = sel2Color;			
 		}
 		
 	}
@@ -964,7 +1048,8 @@ public class BlockManager : MonoBehaviour {
 				}
 				this.score += 10;
 			}
-						
+			
+			this.modeDisplay.text = "Score: " + this.score.ToString("N0");
 			return true;
 			
 		}

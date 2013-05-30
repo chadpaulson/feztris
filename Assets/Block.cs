@@ -7,6 +7,7 @@ public class Block : MonoBehaviour {
 
 	public AudioSource blockFall;
 	private BlockManager manager;
+	private bool blockCollision = false;
 	
 	
 	void Awake() {
@@ -31,6 +32,10 @@ public class Block : MonoBehaviour {
 	void OnCollisionExit(Collision col) {
 		
 		if(col.gameObject.CompareTag("block") || col.gameObject.CompareTag("ground")) {
+			if(!this.blockCollision) {
+				
+				this.blockCollision = true;
+			}
 			if(manager.newCubes && gameObject.rigidbody.velocity.y >= 0f && manager.blockFall) {
 				manager.disableBlockFall();			
 				blockFall.Play();
