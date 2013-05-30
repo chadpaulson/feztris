@@ -144,7 +144,7 @@ public class BlockManager : MonoBehaviour {
 		
 		#if UNITY_ANDROID
 	        foreach (Touch touch in Input.touches) {
-				if(touch.phase == TouchPhase.Began && !this.touchStart) {
+				if(touch.phase == TouchPhase.Began && !this.touchStart && !this.colorSwap) {
 					this.firstTouch = touch;
 					this.touchStart = true;
 					RaycastHit touchHit;
@@ -162,7 +162,7 @@ public class BlockManager : MonoBehaviour {
 						StartCoroutine(moveCube(this.cubeSide, newSide));				
 					}				
 				}
-				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null) {
+				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null && !this.colorSwap) {
 					float hDiff;
 					float vDiff;
 					string[] swipeDir = new string[2];
@@ -317,25 +317,29 @@ public class BlockManager : MonoBehaviour {
 	
 	public void checkSelection() {
 	
-		StartCoroutine(delaySelection());
+		if(!this.colorSwap) {
+			StartCoroutine(delaySelection());
+		}
 		
 	}
 	
 	
 	IEnumerator delaySelection() {
 	
-		if(this.gameMode == 0) {
-			yield return new WaitForSeconds(0.1f);
-		} else if(this.gameMode == 1) {
-			yield return new WaitForSeconds(0.3f);
-		}
-		if(this.selectorClear) {
-			if(this.selector && !this.selector2) {
-				updateSelector(this.selector);
-			} else if(this.selector2 && !this.selector) {
-				updateSelector(this.selector2);
-			} else if(!this.selector && !this.selector2) {
-				newSelection();
+		if(!this.colorSwap) {
+			if(this.gameMode == 0) {
+				yield return new WaitForSeconds(0.1f);
+			} else if(this.gameMode == 1) {
+				yield return new WaitForSeconds(0.3f);
+			}
+			if(this.selectorClear) {
+				if(this.selector && !this.selector2) {
+					updateSelector(this.selector);
+				} else if(this.selector2 && !this.selector) {
+					updateSelector(this.selector2);
+				} else if(!this.selector && !this.selector2) {
+					newSelection();
+				}
 			}
 		}
 		
@@ -668,36 +672,41 @@ public class BlockManager : MonoBehaviour {
 	
 	void newSelection() {
 		
-		this.selectorClear = false;
-		float x = 0f;
-		float z = 0f;
-		float y = 10f;
-
-		setSelectionPoints(ref x, ref z);
+		if(!this.colorSwap) {
 		
-		foreach(GameObject block in blocks) {
-			if(isBlockInSide(block)) {
-				setAlpha(block, cubeAlpha);
-				setSelectionVector(block, ref x, ref z, ref y);
-			} else {
-				setAlpha(block, bgAlpha);
+			this.selectorClear = false;
+			float x = 0f;
+			float z = 0f;
+			float y = 10f;
+	
+			setSelectionPoints(ref x, ref z);
+			
+			foreach(GameObject block in blocks) {
+				if(isBlockInSide(block)) {
+					setAlpha(block, cubeAlpha);
+					setSelectionVector(block, ref x, ref z, ref y);
+				} else {
+					setAlpha(block, bgAlpha);
+				}
+				
 			}
 			
-		}
-		
-		// locate new selector
-		foreach(GameObject block in blocks) {
-			if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
-				if(isValidSelection(block)) {
-					updateSelector(block);
-				} else {
-					this.selectorSkip = new float[2] {block.transform.position.x, block.transform.position.z};
-					newSelection();
+			#if UNITY_STANDALONE || UNITY_WEBPLAYER || UNITY_EDITOR
+			// locate new selector
+			foreach(GameObject block in blocks) {
+				if(block.transform.position.x == x && block.transform.position.z == z && Mathf.Floor(block.transform.position.y) == Mathf.Floor(y)) {
+					if(isValidSelection(block)) {
+						updateSelector(block);
+					} else {
+						this.selectorSkip = new float[2] {block.transform.position.x, block.transform.position.z};
+						newSelection();
+					}
+	 				break;
 				}
- 				break;
 			}
+			#endif
+			
 		}
-
 		
 	}
 	
@@ -838,29 +847,33 @@ public class BlockManager : MonoBehaviour {
 	
 	void updateSelector(GameObject newSelector) {
 	
-		this.selCursor = newSelector;
-		GameObject sel2 = getSelectorHalf(newSelector);
+		if(!this.colorSwap) {
 		
-		if(sel2.CompareTag("block")) {
-		
-			this.selectorClear = false;
-			if(this.selector) {
-				this.selector.renderer.material.shader = Shader.Find("Transparent/Diffuse");
-			}
-			if(this.selector2) {
-				this.selector2.renderer.material.shader = Shader.Find("Transparent/Diffuse");
-			}
-			this.selector = newSelector;
-			this.selector2 = sel2;
-			this.selector.renderer.material.shader = Shader.Find("Decal");
-			this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex2);
-			this.selector2.renderer.material.shader = Shader.Find("Decal");
-			this.selector2.renderer.material.SetTexture("_DecalTex", this.selectorTex2);
+			this.selCursor = newSelector;
+			GameObject sel2 = getSelectorHalf(newSelector);
 			
-		} else {
-		
-			toggleSelectorMode();
+			if(sel2.CompareTag("block")) {
 			
+				this.selectorClear = false;
+				if(this.selector) {
+					this.selector.renderer.material.shader = Shader.Find("Transparent/Diffuse");
+				}
+				if(this.selector2) {
+					this.selector2.renderer.material.shader = Shader.Find("Transparent/Diffuse");
+				}
+				this.selector = newSelector;
+				this.selector2 = sel2;
+				this.selector.renderer.material.shader = Shader.Find("Decal");
+				this.selector.renderer.material.SetTexture("_DecalTex", this.selectorTex2);
+				this.selector2.renderer.material.shader = Shader.Find("Decal");
+				this.selector2.renderer.material.SetTexture("_DecalTex", this.selectorTex2);
+				
+			} else {
+			
+				toggleSelectorMode();
+				
+			}
+
 		}
 		
 	}	
@@ -910,7 +923,7 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	private IEnumerator swapColors(Color selColor, Color sel2Color, float swapTime = 0.56f) {
+	private IEnumerator swapColors(Color selColor, Color sel2Color, float swapTime = 0.59f) {
 		
 		if(this.colorSwap) {
 		
