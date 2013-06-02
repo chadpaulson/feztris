@@ -150,7 +150,12 @@ public class BlockManager : MonoBehaviour {
 					RaycastHit touchHit;
 					Ray touchRay = Camera.main.ScreenPointToRay(touch.position);
 					if(Physics.Raycast(touchRay, out touchHit, Mathf.Infinity)) {
-						this.touchBlock = touchHit.rigidbody.gameObject;
+					    
+						if(touchHit.rigidbody.gameObject.CompareTag("block")) {
+							if(isBlockInSide(touchHit.rigidbody.gameObject)) {
+								this.touchBlock = touchHit.rigidbody.gameObject;							
+							}
+						}
 					}	
 				}
 				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock == null) {
@@ -983,7 +988,7 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	private IEnumerator moveCube(int startSide, int newSide, float rotateTime = 0.121f) {
+	private IEnumerator moveCube(int startSide, int newSide, float rotateTime = 0.161f) {
 		
 		this.cubeRotation = true;
 		this.cubeSide = newSide;
