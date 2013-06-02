@@ -32,7 +32,7 @@ public class BlockManager : MonoBehaviour {
 	private int selector2Index;
 	private float[] selectorSkip = new float[0];
 	private float cubeAlpha = 1.0f;
-	private float bgAlpha = 0.6f;
+	private float bgAlpha = 0.4f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<GameObject> invaders = new List<GameObject>();
 	private const GameObject defaultBlock = null;
@@ -357,7 +357,7 @@ public class BlockManager : MonoBehaviour {
 	
 	void initRepeats() {
 		
-		InvokeRepeating("newBlock", 2f, 1.3f);
+		InvokeRepeating("newBlock", 2f, 1.6f);
 		if(this.gameMode == 1) {
 			InvokeRepeating("newInvader", 3f, 8f);	
 		}
@@ -366,7 +366,7 @@ public class BlockManager : MonoBehaviour {
 			InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
 		#endif
 		#if UNITY_ANDROID
-			InvokeRepeating("clearAllBlocks", 0.5f, 1.0f);
+			InvokeRepeating("clearAllBlocks", 0.5f, 0.55f);
 			InvokeRepeating("enableRotation", 0.5f, 1.0f);
 		#endif
 	}
@@ -442,11 +442,12 @@ public class BlockManager : MonoBehaviour {
 			int r = Random.Range(0,2);			
 			if(r == 1) {
 				dropBlock(block_coords[i][0], 3.75f, block_coords[i][1], randColor());
+
 			}
 			
 		}
 		
-		
+		StartCoroutine(moveCube(1,1,0f));
 		
 	}
 	
@@ -519,6 +520,12 @@ public class BlockManager : MonoBehaviour {
 		blocks.Add((GameObject) Instantiate(block, new Vector3(x, y, z), transform.rotation));
 		blocks[blocks.Count-1].renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		blocks[blocks.Count-1].renderer.material.color = color;
+		if(isBlockInSide(blocks[blocks.Count-1])) {
+			setAlpha(blocks[blocks.Count-1], cubeAlpha);
+		} else {
+			setAlpha(blocks[blocks.Count-1], bgAlpha);
+		}
+				
 		
 		// manage initial block colors
 		if(!newCubes) {
@@ -682,12 +689,16 @@ public class BlockManager : MonoBehaviour {
 			setSelectionPoints(ref x, ref z);
 			
 			foreach(GameObject block in blocks) {
+				
+				setSelectionVector(block, ref x, ref z, ref y);
+				
+				/*
 				if(isBlockInSide(block)) {
 					setAlpha(block, cubeAlpha);
 					setSelectionVector(block, ref x, ref z, ref y);
 				} else {
 					setAlpha(block, bgAlpha);
-				}
+				} */
 				
 			}
 			
@@ -923,7 +934,7 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	private IEnumerator swapColors(Color selColor, Color sel2Color, float swapTime = 0.59f) {
+	private IEnumerator swapColors(Color selColor, Color sel2Color, float swapTime = 0.283f) {
 		
 		if(this.colorSwap) {
 		
@@ -949,8 +960,30 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	private IEnumerator removeBlocks(List<GameObject> blocks,float start=1f, float end=0.002f, float rate=6.54f) {
+		
+		float i = 0f;
+		while(i < 1f) {
+		
+			i = i + Time.deltaTime * rate;
+			float alpha = Mathf.Lerp(start,end,i);
+			
+			foreach(GameObject block in blocks) {
+				setAlpha(block,alpha);				
+			}
+			
+			yield return null;
+			
+		}
+		
+		foreach(GameObject block in blocks) {
+			removeBlock(block);
+		}
+		
+	}
 	
-	private IEnumerator moveCube(int startSide, int newSide, float rotateTime = 0.2f) {
+	
+	private IEnumerator moveCube(int startSide, int newSide, float rotateTime = 0.121f) {
 		
 		this.cubeRotation = true;
 		this.cubeSide = newSide;
@@ -963,7 +996,34 @@ public class BlockManager : MonoBehaviour {
 			transform.rotation = Quaternion.Lerp(curRotation, newRotation, Mathf.SmoothStep(0f, 1f, i));
 			yield return null;
 		}
-		this.initCube();		
+		
+		i = 0f;
+		float toCube;
+		float toBG;
+		rate = 1f/0.09945f;
+		while(i < 1f) {
+		
+			i = i + Time.deltaTime * rate;
+			toCube = Mathf.Lerp(bgAlpha,cubeAlpha,i);
+			toBG = Mathf.Lerp(cubeAlpha,bgAlpha,i);
+			
+			foreach(GameObject block in blocks) {
+				
+				if(isBlockInSide(block)) {
+					setAlpha(block,toCube);
+				} else {
+					if(block.renderer.material.color.a != bgAlpha) {
+						setAlpha(block,toBG);
+					}
+				}
+				
+			}
+			
+			yield return null;
+			
+		}
+		
+		this.initCube();
 		this.cubeRotation = false;
 		
 	}
@@ -1050,10 +1110,12 @@ public class BlockManager : MonoBehaviour {
 		
 		if(matches.Count > 0) {
 			
+			if(this.gameMode == 0) {
+				StartCoroutine(removeBlocks(matches));
+			}
+			
 			foreach(GameObject match in matches) {
-				if(this.gameMode == 0) {
-					removeBlock(match);
-				} else if(this.gameMode == 1) {
+				if(this.gameMode == 1) {
 					match.rigidbody.constraints = RigidbodyConstraints.None;
 					match.rigidbody.AddForce(transform.TransformDirection(Vector3.back * 100000));
 					Block bScript = match.GetComponent<Block>();
