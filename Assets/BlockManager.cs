@@ -69,7 +69,7 @@ public class BlockManager : MonoBehaviour {
 		new List<float>{1f,-2f},
 		new List<float>{2f,-2f},
 	};
-	#if UNITY_ANDROID
+	#if UNITY_ANDROID || UNITY_IPHONE
 	private Touch firstTouch;
 	private bool touchStart = false;
 	private GameObject touchBlock = null;
@@ -142,7 +142,7 @@ public class BlockManager : MonoBehaviour {
 		#endif
 
 		
-		#if UNITY_ANDROID
+		#if UNITY_ANDROID || UNITY_IPHONE
 	        foreach (Touch touch in Input.touches) {
 				if(touch.phase == TouchPhase.Began && !this.touchStart && !this.colorSwap) {
 					this.firstTouch = touch;
@@ -370,7 +370,7 @@ public class BlockManager : MonoBehaviour {
 		#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
 			InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
 		#endif
-		#if UNITY_ANDROID
+		#if UNITY_ANDROID || UNITY_IPHONE
 			InvokeRepeating("clearAllBlocks", 0.5f, 0.55f);
 			InvokeRepeating("enableRotation", 0.5f, 1.0f);
 		#endif
@@ -760,7 +760,7 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
-	#if UNITY_ANDROID
+	#if UNITY_ANDROID || UNITY_IPHONE
 	GameObject getSelectorTouch(GameObject cursor, Vector3 hDirection) {
 	
 		RaycastHit hit;

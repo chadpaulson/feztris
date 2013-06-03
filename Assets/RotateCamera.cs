@@ -10,7 +10,7 @@ public class RotateCamera : MonoBehaviour {
 		#if UNITY_STANDALONE || UNITY_WEBPLAYER || UNITY_EDITOR
 		cam.fieldOfView = 60f;
 		#endif
-		#if UNITY_ANDROID
+		#if UNITY_ANDROID || UNITY_IPHONE
 		cam.fieldOfView = 50f;
 		#endif
 		
