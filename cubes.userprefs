@@ -6,7 +6,7 @@
       <File FileName="Assets/Invader.cs" Line="1" Column="1" />
       <File FileName="Assets/Block.cs" Line="1" Column="1" />
       <File FileName="Assets/RotateCamera.cs" Line="1" Column="1" />
-      <File FileName="Assets/BlockManager.cs" Line="991" Column="82" />
+      <File FileName="Assets/BlockManager.cs" Line="535" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

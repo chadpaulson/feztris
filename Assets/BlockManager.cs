@@ -210,14 +210,23 @@ public class BlockManager : MonoBehaviour {
 				if(touch.phase == TouchPhase.Ended) {
 					this.touchStart = false;;	
 				}
-			}		
-			if(Input.GetKeyDown(KeyCode.Escape)) {
-				Application.Quit();
-			}			
+			}				
+		#endif
+		
+		#if UNITY_ANDROID
+		if(Input.GetKeyDown(KeyCode.Escape)) {
+			Application.Quit();
+		}			
 		#endif
 				
 	}
 	
+	
+	#if UNITY_IPHONE
+	void OnApplicationQuit() {
+    	Application.Quit();
+    }
+	#endif
 	
 	void FixedUpdate() {
 		
@@ -863,6 +872,7 @@ public class BlockManager : MonoBehaviour {
 	
 	void updateSelector(GameObject newSelector) {
 	
+		#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBPLAYER
 		if(!this.colorSwap) {
 		
 			this.selCursor = newSelector;
@@ -891,6 +901,7 @@ public class BlockManager : MonoBehaviour {
 			}
 
 		}
+		#endif
 		
 	}	
 	
