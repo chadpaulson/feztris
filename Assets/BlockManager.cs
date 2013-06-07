@@ -17,6 +17,7 @@ public class BlockManager : MonoBehaviour {
 	public bool colorSwap = false;
 	public int cubeSide;
 	public AudioSource invaderHit;
+	private bool paused = false;
 	private int score = 0;
 	private GUIText modeDisplay;	
 	private int gameMode = 0; // 0 - default, 1 - invader
@@ -83,7 +84,7 @@ public class BlockManager : MonoBehaviour {
 		this.modeDisplay.text = "Mode: Classic";
 		
 		this.blnk = new GameObject();
-		
+		Time.timeScale = 1;
 		AudioSource[] audioSources = (AudioSource[])GetComponents<AudioSource>();
 		this.blockClear = audioSources[0];
 		this.blockPop = audioSources[1];
@@ -99,11 +100,50 @@ public class BlockManager : MonoBehaviour {
 		
 	}
 	
+	void OnGUI () {
+	
+		if(this.paused) {
+				
+			GUI.BeginGroup (new Rect (Screen.width / 2 - 150, Screen.height / 2 - 200, 300, 400));
+			if(GUI.Button(new Rect(0f, 0f, 280.0f, 60.0f), "Resume")){
+				togglePause();
+			}
+			if(GUI.Button(new Rect(0f, 80f, 280f, 60f), "New Classic Game")){
+				if(this.gameMode == 0) {
+					initReset();
+				} else {
+					toggleGameMode();
+				}
+				togglePause();
+			}
+			if(GUI.Button(new Rect(0f, 160f, 280f, 60f), "New Invader Game")){
+				if(this.gameMode == 1) {
+					initReset();
+				} else {
+					toggleGameMode();
+				}
+				togglePause();
+			}
+			if(GUI.Button(new Rect(0f, 240f, 280f, 60f), "Quit")){
+			#if UNITY_ANDROID || UNITY_IPHONE
+				Application.Quit();					
+			#endif
+			#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
+				System.Diagnostics.Process.GetCurrentProcess().Kill();															
+			#endif
+			}
+			GUI.EndGroup();
+			
+		}
+		
+	}
+	
 	
 	// Update is called once per frame
 	void Update () {
 		
 		#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
+		if(!this.paused) {
 			if(Input.GetButtonDown("Right")) {
 				moveSelector("right");
 			}
@@ -129,7 +169,7 @@ public class BlockManager : MonoBehaviour {
 				toggleGameMode();
 			}
 			if(Input.GetKey("escape")) {
-				System.Diagnostics.Process.GetCurrentProcess().Kill();	
+				togglePause();
 			}
 			if(Input.GetButtonDown("Rotate")) {
 				int newSide = this.rotateCube("right");
@@ -138,11 +178,13 @@ public class BlockManager : MonoBehaviour {
 			if(Input.GetButtonDown("RotateBack")) {
 				int newSide = this.rotateCube("left");
 				StartCoroutine(moveCube(this.cubeSide, newSide));
-			}		
+			}
+		}
 		#endif
 
 		
 		#if UNITY_ANDROID || UNITY_IPHONE
+		if(!this.paused) {
 	        foreach (Touch touch in Input.touches) {
 				if(touch.phase == TouchPhase.Began && !this.touchStart && !this.colorSwap) {
 					this.firstTouch = touch;
@@ -210,27 +252,47 @@ public class BlockManager : MonoBehaviour {
 				if(touch.phase == TouchPhase.Ended) {
 					this.touchStart = false;;	
 				}
-			}				
+			}
+		}
 		#endif
 		
 		#if UNITY_ANDROID
-		if(Input.GetKeyDown(KeyCode.Escape)) {
-			Application.Quit();
-		}			
+		if(!this.paused) {
+			if(Input.GetKeyDown(KeyCode.Escape)) {
+				togglePause();
+			}
+		}
 		#endif
 				
 	}
 	
 	
 	#if UNITY_IPHONE
-	void OnApplicationQuit() {
-    	Application.Quit();
+	void OnApplicationPause() {
+		if(!this.paused) {
+			togglePause();
+		}
     }
 	#endif
 	
 	void FixedUpdate() {
 		
 		//clearAllBlocks();
+		
+	}
+	
+	
+	void togglePause() {
+	
+		if(this.paused) {
+			Time.timeScale = 1;
+			this.paused = false;
+			Screen.lockCursor = false;
+		} else {
+			Time.timeScale = 0;
+			this.paused = true;
+			Screen.lockCursor = true;
+		}
 		
 	}
 	
