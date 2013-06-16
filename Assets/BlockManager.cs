@@ -29,11 +29,17 @@ public class BlockManager : MonoBehaviour {
 	private GameObject blnk;
 	private AudioSource blockClear;
 	private AudioSource blockPop;
+	private AudioSource blockSel1;
+	private AudioSource blockSel2;
+	private AudioSource blockSel3;
+	private AudioSource blockSel4;
+	private AudioSource blockSel5;
 	private int selectorMode = 0; // 0 - landscape, 1 - portrait
 	private int selector2Index;
 	private float[] selectorSkip = new float[0];
 	private float cubeAlpha = 1.0f;
 	private float bgAlpha = 0.4f;
+	private float selAlpha = 0.3f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<GameObject> invaders = new List<GameObject>();
 	private List<GameObject> dotstring = new List<GameObject>();
@@ -42,10 +48,10 @@ public class BlockManager : MonoBehaviour {
 	private List<Color> blockColors = new List<Color>{
 		//new Color(255f/255f, 46f/255f, 3f/255f), // red
 		//new Color(40f/255f, 130f/255f, 51f/255f), // green
-		new Color(56f/255f, 98f/255f, 252f/255f), // blue		
+		//new Color(56f/255f, 98f/255f, 252f/255f), // blue		
 		new Color(56f/255f, 243f/255f, 252f/255f), // aqua
 		new Color(88f/255f, 219f/255f, 103f/255f), // light green
-		new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
+		//new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
 		new Color(245f/255f, 225f/255f, 51f/255f), // bright yellow
 		new Color(232f/255f, 58f/255f, 229f/255f), // purple
 	};
@@ -90,6 +96,11 @@ public class BlockManager : MonoBehaviour {
 		this.blockClear = audioSources[0];
 		this.blockPop = audioSources[1];
 		this.invaderHit = audioSources[2];
+		this.blockSel1 = audioSources[3];
+		this.blockSel2 = audioSources[4];
+		this.blockSel3 = audioSources[5];
+		this.blockSel4 = audioSources[6];
+		this.blockSel5 = audioSources[7];
 		
 		initBlocks();
 		
@@ -197,7 +208,10 @@ public class BlockManager : MonoBehaviour {
 						if(touchHit.rigidbody.gameObject.CompareTag("block")) {
 							if(isBlockInSide(touchHit.rigidbody.gameObject)) {
 								this.touchBlock = touchHit.rigidbody.gameObject;
-								this.dotstring.Add(touchHit.rigidbody.gameObject); // find first dot
+								if(isDotString(touchHit.rigidbody.gameObject)) {
+									this.dotstring.Add(touchHit.rigidbody.gameObject); // find first dot
+									this.setAlpha(touchHit.rigidbody.gameObject, selAlpha);
+								}
 							}
 						}
 					}	
@@ -209,7 +223,8 @@ public class BlockManager : MonoBehaviour {
 					} else {
 						int newSide = this.rotateCube("left");
 						StartCoroutine(moveCube(this.cubeSide, newSide));				
-					}				
+					}
+					this.touchStart = false;
 				}
 				if(touch.phase != TouchPhase.Ended && this.touchStart && this.touchBlock != null && !this.colorSwap) {
 					RaycastHit touchHit;
@@ -223,12 +238,12 @@ public class BlockManager : MonoBehaviour {
 					}					
 
 				}		
-				if(touch.phase == TouchPhase.Ended) {
-					if(this.dotstring.Count > 1) {
-						dotsAhoy();
-					}							
-					this.touchStart = false;
-					this.dotstring = new List<GameObject>();
+				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null) {
+					//if(this.dotstring.Count > 1) {
+					dotsAhoy();
+					//}							
+					//this.touchStart = false;
+					//this.dotstring = new List<GameObject>();
 				}
 			}
 		}
@@ -247,16 +262,18 @@ public class BlockManager : MonoBehaviour {
 	#if UNITY_IPHONE || UNITY_ANDROID
 	bool dotsAhoy() {
 		List<GameObject> matches = this.dotstring;
-		this.dotstring = new List<GameObject>();
 		if(matches.Count > 1) {
 			clearBlocks(matches);
 			blockPop.PlayDelayed(0.05f);
-			this.touchBlock = null;
-			this.touchStart = false;
-			return true;
 		} else {
-			return false;
-		}	
+			foreach(GameObject match in matches) {
+				this.setAlpha(match, cubeAlpha);	
+			}
+		}
+		this.dotstring = new List<GameObject>();
+		this.touchBlock = null;
+		this.touchStart = false;				
+		return true;
 	}
 	#endif
 	
@@ -427,7 +444,7 @@ public class BlockManager : MonoBehaviour {
 	
 	void initRepeats() {
 		
-		InvokeRepeating("newBlock", 2f, 1.6f);
+		//InvokeRepeating("newBlock", 2f, 1.6f);
 		if(this.gameMode == 1) {
 			InvokeRepeating("newInvader", 3f, 8f);	
 		}
@@ -829,39 +846,72 @@ public class BlockManager : MonoBehaviour {
 	int newDots(GameObject selection) {
 		int dotcount = this.dotstring.Count;
 		if(dotcount > 0) {
-			if(selection.renderer.material.color != this.dotstring[0].renderer.material.color && dotcount > 1) {
+			if(selection.renderer.material.color.r != this.dotstring[0].renderer.material.color.r && selection.renderer.material.color.g != this.dotstring[0].renderer.material.color.g && selection.renderer.material.color.b != this.dotstring[0].renderer.material.color.b) {
 				dotsAhoy();
 				return dotcount;
-			} else if(selection.renderer.material.color == this.dotstring[0].renderer.material.color && !this.dotstring.Contains(selection)) {
-				
-				GameObject matchUp = this.getSelectorTouch(selection, Vector3.up);
-				GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
-				GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
-				GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
-				bool dot = false;
-				if(matchUp.CompareTag("block") && !this.dotstring.Contains(matchUp) && matchUp.renderer.material.color == this.dotstring[0].renderer.material.color) {
-					dot = true;
-				} else if(matchDown.CompareTag("block") && !this.dotstring.Contains(matchDown) && matchDown.renderer.material.color == this.dotstring[0].renderer.material.color) {
-					dot = true;
-				} else if(matchRight.CompareTag("block") && !this.dotstring.Contains(matchRight) && matchRight.renderer.material.color == this.dotstring[0].renderer.material.color) {
-					dot = true;
-				} else if(matchLeft.CompareTag("block") && !this.dotstring.Contains(matchLeft) && matchLeft.renderer.material.color == this.dotstring[0].renderer.material.color) {
-					dot = true;
-				}						
-				
-				this.dotstring.Add(selection);
-
-				if(!dot) {
+			} else if(!this.dotstring.Contains(selection)) {
+				if(!this.isDot(selection)) {
 					dotsAhoy();
-					return dotcount;				
+				} else {
+					this.dotstring.Add(selection);
+					if(this.dotstring.Count == 2) {
+						this.blockSel1.Play();
+					} else if(this.dotstring.Count == 3) {
+						this.blockSel2.Play();
+					} else if(this.dotstring.Count == 4) {
+						this.blockSel3.Play();
+					} else if(this.dotstring.Count == 5) {
+						this.blockSel4.Play();
+					} else {
+						this.blockSel5.Play();
+					}
+					this.setAlpha(selection, selAlpha);
 				}
-
+				return dotcount;
+			} else if(this.dotstring.Contains(selection)) {
+				// prevent backtracing
+				if(this.dotstring[this.dotstring.Count-1] != selection) {
+					dotsAhoy();
+				}
+				return dotcount;
 			}
 		}
-		
 		return dotcount;
-
 	}
+	bool isDot(GameObject selection) {
+		GameObject matchUp = this.getSelectorTouch(selection, Vector3.up);
+		GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
+		GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
+		GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
+		bool dot = false;
+		if(matchUp.CompareTag("block") && this.dotstring.Contains(matchUp)) {
+			dot = true;
+		} else if(matchDown.CompareTag("block") && this.dotstring.Contains(matchDown)) {
+			dot = true;
+		} else if(matchRight.CompareTag("block") && this.dotstring.Contains(matchRight)) {
+			dot = true;
+		} else if(matchLeft.CompareTag("block") && this.dotstring.Contains(matchLeft)) {
+			dot = true;
+		}
+		return dot;
+	}
+	bool isDotString(GameObject selection) {
+		GameObject matchUp = this.getSelectorTouch(selection, Vector3.up);
+		GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
+		GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
+		GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
+		bool dot = false;
+		if(matchUp.CompareTag("block") && !this.dotstring.Contains(matchUp) && matchUp.renderer.material.color == selection.renderer.material.color) {
+			dot = true;
+		} else if(matchDown.CompareTag("block") && !this.dotstring.Contains(matchDown) && matchDown.renderer.material.color == selection.renderer.material.color) {
+			dot = true;
+		} else if(matchRight.CompareTag("block") && !this.dotstring.Contains(matchRight) && matchRight.renderer.material.color == selection.renderer.material.color) {
+			dot = true;
+		} else if(matchLeft.CompareTag("block") && !this.dotstring.Contains(matchLeft) && matchLeft.renderer.material.color == selection.renderer.material.color) {
+			dot = true;
+		}
+		return dot;
+	}	
 	#endif
 	
 	GameObject getSelectorHalf(GameObject cursor) {
