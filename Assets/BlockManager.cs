@@ -36,11 +36,12 @@ public class BlockManager : MonoBehaviour {
 	private float bgAlpha = 0.4f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<GameObject> invaders = new List<GameObject>();
+	private List<GameObject> dotstring = new List<GameObject>();
 	private const GameObject defaultBlock = null;
 	private const List<GameObject> defaultBlocks = null;	
 	private List<Color> blockColors = new List<Color>{
-		new Color(255f/255f, 46f/255f, 3f/255f), // red
-		new Color(40f/255f, 130f/255f, 51f/255f), // green
+		//new Color(255f/255f, 46f/255f, 3f/255f), // red
+		//new Color(40f/255f, 130f/255f, 51f/255f), // green
 		new Color(56f/255f, 98f/255f, 252f/255f), // blue		
 		new Color(56f/255f, 243f/255f, 252f/255f), // aqua
 		new Color(88f/255f, 219f/255f, 103f/255f), // light green
@@ -195,7 +196,8 @@ public class BlockManager : MonoBehaviour {
 					    
 						if(touchHit.rigidbody.gameObject.CompareTag("block")) {
 							if(isBlockInSide(touchHit.rigidbody.gameObject)) {
-								this.touchBlock = touchHit.rigidbody.gameObject;							
+								this.touchBlock = touchHit.rigidbody.gameObject;
+								this.dotstring.Add(touchHit.rigidbody.gameObject); // find first dot
 							}
 						}
 					}	
@@ -209,48 +211,24 @@ public class BlockManager : MonoBehaviour {
 						StartCoroutine(moveCube(this.cubeSide, newSide));				
 					}				
 				}
-				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null && !this.colorSwap) {
-					float hDiff;
-					float vDiff;
-					string[] swipeDir = new string[2];
-					Vector3	hDirection;
-					if(touch.position.x > this.firstTouch.position.x) {
-						hDiff = touch.position.x - this.firstTouch.position.x;
-						swipeDir[0] = "right";
-					} else {
-						hDiff = this.firstTouch.position.x - touch.position.x;
-						swipeDir[0] = "left";
-					}
-					if(touch.position.y > this.firstTouch.position.y) {
-						vDiff = touch.position.y - this.firstTouch.position.y;
-						swipeDir[1] = "up";
-					} else {
-						vDiff = this.firstTouch.position.y - touch.position.y;
-						swipeDir[1] = "down";
-					}
-					if(Mathf.Abs(hDiff) > Mathf.Abs(vDiff)) {	
-						if(swipeDir[0] == "right") {
-							hDirection = Vector3.right;
-						} else {
-							hDirection = Vector3.left;
+				if(touch.phase != TouchPhase.Ended && this.touchStart && this.touchBlock != null && !this.colorSwap) {
+					RaycastHit touchHit;
+					Ray touchRay = Camera.main.ScreenPointToRay(touch.position);
+					if(Physics.Raycast(touchRay, out touchHit, Mathf.Infinity)) {
+						if(touchHit.rigidbody.gameObject.CompareTag("block")) {
+							if(isBlockInSide(touchHit.rigidbody.gameObject)) {
+								newDots(touchHit.rigidbody.gameObject);
+							}
 						}
-					} else {
-						if(swipeDir[1] == "up") {
-							hDirection = Vector3.up;
-						} else {
-							hDirection = Vector3.down;
-						}
-					}
-					GameObject sel2 = this.getSelectorTouch(this.touchBlock, hDirection);
-					if(sel2.CompareTag("block")) {
-						this.selector = this.touchBlock;
-						this.selector2 = sel2;
-						this.swapIt();
-					}	
-					this.touchBlock = null;
+					}					
+
 				}		
 				if(touch.phase == TouchPhase.Ended) {
-					this.touchStart = false;;	
+					if(this.dotstring.Count > 1) {
+						dotsAhoy();
+					}							
+					this.touchStart = false;
+					this.dotstring = new List<GameObject>();
 				}
 			}
 		}
@@ -265,6 +243,22 @@ public class BlockManager : MonoBehaviour {
 		#endif
 				
 	}
+	
+	#if UNITY_IPHONE || UNITY_ANDROID
+	bool dotsAhoy() {
+		List<GameObject> matches = this.dotstring;
+		this.dotstring = new List<GameObject>();
+		if(matches.Count > 1) {
+			clearBlocks(matches);
+			blockPop.PlayDelayed(0.05f);
+			this.touchBlock = null;
+			this.touchStart = false;
+			return true;
+		} else {
+			return false;
+		}	
+	}
+	#endif
 	
 	
 	#if UNITY_IPHONE
@@ -439,10 +433,10 @@ public class BlockManager : MonoBehaviour {
 		}
 		InvokeRepeating("enableBlockFall", 0.5f, 3.5f);
 		#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
-			InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
+			//InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
 		#endif
 		#if UNITY_ANDROID || UNITY_IPHONE
-			InvokeRepeating("clearAllBlocks", 0.5f, 0.55f);
+			//InvokeRepeating("clearAllBlocks", 0.5f, 0.55f);
 			InvokeRepeating("enableRotation", 0.5f, 1.0f);
 		#endif
 	}
@@ -477,51 +471,39 @@ public class BlockManager : MonoBehaviour {
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 		
-			dropBlock(block_coords[i][0], 0.75f, block_coords[i][1], randColor());
+			dropBlock(block_coords[i][0], 1f, block_coords[i][1], randColor());
 			
 		}
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 			
-			dropBlock(block_coords[i][0], 1.75f, block_coords[i][1], randColor());
+			dropBlock(block_coords[i][0], 2.25f, block_coords[i][1], randColor());
 			
 		}
 
 		for(int i = 0; i < block_coords.Count; i++) {
 			
-			dropBlock(block_coords[i][0], 2.75f, block_coords[i][1], randColor());
+			dropBlock(block_coords[i][0], 3.50f, block_coords[i][1], randColor());
 			
 		}
-		
-		/*
-		for(int i = 0; i < block_coords.Count; i++) {
-			
-			dropBlock(block_coords[i][0], 3.75f, block_coords[i][1], randColor());
-			
-		}		
-
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 			
 			dropBlock(block_coords[i][0], 4.75f, block_coords[i][1], randColor());
 			
 		}
-
-		for(int i = 0; i < block_coords.Count; i++) {
-			
-			dropBlock(block_coords[i][0], 5.75f, block_coords[i][1], randColor());
-			
-		}*/
 		
 		for(int i = 0; i < block_coords.Count; i++) {
 			
-			int r = Random.Range(0,2);			
-			if(r == 1) {
-				dropBlock(block_coords[i][0], 3.75f, block_coords[i][1], randColor());
-
-			}
+			dropBlock(block_coords[i][0], 6.00f, block_coords[i][1], randColor());
 			
 		}
+		
+		for(int i = 0; i < block_coords.Count; i++) {
+			
+			dropBlock(block_coords[i][0], 7.25f, block_coords[i][1], randColor());
+			
+		}		
 		
 		StartCoroutine(moveCube(1,1,0f));
 		
@@ -843,7 +825,43 @@ public class BlockManager : MonoBehaviour {
 			return this.blnk;
 		}
 		
-	}	
+	}
+	int newDots(GameObject selection) {
+		int dotcount = this.dotstring.Count;
+		if(dotcount > 0) {
+			if(selection.renderer.material.color != this.dotstring[0].renderer.material.color && dotcount > 1) {
+				dotsAhoy();
+				return dotcount;
+			} else if(selection.renderer.material.color == this.dotstring[0].renderer.material.color && !this.dotstring.Contains(selection)) {
+				
+				GameObject matchUp = this.getSelectorTouch(selection, Vector3.up);
+				GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
+				GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
+				GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
+				bool dot = false;
+				if(matchUp.CompareTag("block") && !this.dotstring.Contains(matchUp) && matchUp.renderer.material.color == this.dotstring[0].renderer.material.color) {
+					dot = true;
+				} else if(matchDown.CompareTag("block") && !this.dotstring.Contains(matchDown) && matchDown.renderer.material.color == this.dotstring[0].renderer.material.color) {
+					dot = true;
+				} else if(matchRight.CompareTag("block") && !this.dotstring.Contains(matchRight) && matchRight.renderer.material.color == this.dotstring[0].renderer.material.color) {
+					dot = true;
+				} else if(matchLeft.CompareTag("block") && !this.dotstring.Contains(matchLeft) && matchLeft.renderer.material.color == this.dotstring[0].renderer.material.color) {
+					dot = true;
+				}						
+				
+				this.dotstring.Add(selection);
+
+				if(!dot) {
+					dotsAhoy();
+					return dotcount;				
+				}
+
+			}
+		}
+		
+		return dotcount;
+
+	}
 	#endif
 	
 	GameObject getSelectorHalf(GameObject cursor) {
@@ -1004,10 +1022,11 @@ public class BlockManager : MonoBehaviour {
 	private void initCube() {
 		
 		this.updateCubeSide();
+		/*
 		this.selectorSkip = new float[0];
 		if(!this.colorSwap) {
 			newSelection();
-		}
+		}*/
 		
 	}
 	
@@ -1136,14 +1155,14 @@ public class BlockManager : MonoBehaviour {
 			}
 			
 		}
-		if(clearBlocks(blocks: vBlocks)) {
+		if(clearBlocks(vBlocks)) {
 			if(this.gameMode == 0) {
 				blockClear.PlayDelayed(0.05f);
 			} else if(this.gameMode == 1) {
 				blockPop.PlayDelayed(0.05f); // change this up later
 			}
 			this.selectorClear = true;
-			checkSelection();
+			//checkSelection();
 		}
 		
 	}
@@ -1176,24 +1195,17 @@ public class BlockManager : MonoBehaviour {
 	}
 	
 	
-	public bool clearBlocks(GameObject block = defaultBlock, List<GameObject> blocks = defaultBlocks) {
-	
-		List<GameObject> matches = new List<GameObject>();
-		
-		if(block != null && blocks == null) {
-			matches = getMatching(block: block);
-		} else if(block == null && blocks != null) {
-			matches = getMatching(blocks: blocks);
-		}
-		
+	public bool clearBlocks(List<GameObject> matches) {
+			
 		if(matches.Count > 0) {
 			
+			/*
 			if(this.gameMode == 0) {
 				StartCoroutine(removeBlocks(matches));
-			}
+			}*/
 			
 			foreach(GameObject match in matches) {
-				if(this.gameMode == 1) {
+				if(this.gameMode == 0) {
 					match.rigidbody.constraints = RigidbodyConstraints.None;
 					match.rigidbody.AddForce(transform.TransformDirection(Vector3.back * 100000));
 					Block bScript = match.GetComponent<Block>();
