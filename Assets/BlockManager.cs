@@ -19,7 +19,10 @@ public class BlockManager : MonoBehaviour {
 	public AudioSource invaderHit;
 	private bool paused = false;
 	private int score = 0;
-	private GUIText modeDisplay;	
+	private float countdown = 61f;
+	private Time startTime;
+	private GUIText modeDisplay;
+	private GUIText levelTimer;
 	private int gameMode = 0; // 0 - default, 1 - invader
 	private int lastColorIndex;
 	private int pivots = 0;
@@ -39,19 +42,19 @@ public class BlockManager : MonoBehaviour {
 	private float[] selectorSkip = new float[0];
 	private float cubeAlpha = 1.0f;
 	private float bgAlpha = 0.4f;
-	private float selAlpha = 0.3f;
+	private float selAlpha = 0.5f;
 	private List<GameObject> blocks = new List<GameObject>();
 	private List<GameObject> invaders = new List<GameObject>();
 	private List<GameObject> dotstring = new List<GameObject>();
 	private const GameObject defaultBlock = null;
 	private const List<GameObject> defaultBlocks = null;	
 	private List<Color> blockColors = new List<Color>{
-		new Color(255f/255f, 46f/255f, 3f/255f), // red
-		new Color(40f/255f, 130f/255f, 51f/255f), // green
-		new Color(56f/255f, 98f/255f, 252f/255f), // blue		
+		//new Color(255f/255f, 46f/255f, 3f/255f), // red
+		//new Color(40f/255f, 130f/255f, 51f/255f), // green
+		//new Color(56f/255f, 98f/255f, 252f/255f), // blue		
 		new Color(56f/255f, 243f/255f, 252f/255f), // aqua
 		new Color(88f/255f, 219f/255f, 103f/255f), // light green
-		new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
+		//new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
 		new Color(245f/255f, 225f/255f, 51f/255f), // bright yellow
 		new Color(232f/255f, 58f/255f, 229f/255f), // purple
 	};
@@ -87,8 +90,14 @@ public class BlockManager : MonoBehaviour {
 	void Start () {
 		
 		GameObject modeGUI = GameObject.FindGameObjectWithTag("modeD");
+		GameObject timerGUI = GameObject.FindGameObjectWithTag("timerGUI");
+		
 		this.modeDisplay = modeGUI.GetComponent<GUIText>();
-		this.modeDisplay.text = "Mode: Classic";
+		this.modeDisplay.text = "NEW GAME";
+		
+		this.levelTimer = timerGUI.GetComponent<GUIText>();
+		this.levelTimer.text = "READY!"; // should be dynamic string that people can change for in-app purchase
+		
 		
 		this.blnk = new GameObject();
 		Time.timeScale = 1;
@@ -117,19 +126,8 @@ public class BlockManager : MonoBehaviour {
 		if(this.paused) {
 				
 			GUI.BeginGroup (new Rect (Screen.width / 2 - 150, Screen.height / 2 - 200, 300, 400));
-			if(GUI.Button(new Rect(0f, 0f, 280.0f, 60.0f), "Resume")){
-				togglePause();
-			}
-			if(GUI.Button(new Rect(0f, 80f, 280f, 60f), "New Classic Game")){
+			if(GUI.Button(new Rect(0f, 80f, 280f, 60f), "New Game")){
 				if(this.gameMode == 0) {
-					initReset();
-				} else {
-					toggleGameMode();
-				}
-				togglePause();
-			}
-			if(GUI.Button(new Rect(0f, 160f, 280f, 60f), "New Invader Game")){
-				if(this.gameMode == 1) {
 					initReset();
 				} else {
 					toggleGameMode();
@@ -198,7 +196,7 @@ public class BlockManager : MonoBehaviour {
 		#if UNITY_ANDROID || UNITY_IPHONE
 		if(!this.paused) {
 	        foreach (Touch touch in Input.touches) {
-				if(touch.phase == TouchPhase.Began && !this.touchStart && !this.colorSwap) {
+				if(touch.phase == TouchPhase.Began && !this.touchStart) {
 					this.firstTouch = touch;
 					this.touchStart = true;
 					RaycastHit touchHit;
@@ -226,7 +224,7 @@ public class BlockManager : MonoBehaviour {
 					}
 					this.touchStart = false;
 				}
-				if(touch.phase != TouchPhase.Ended && this.touchStart && this.touchBlock != null && !this.colorSwap) {
+				if(touch.phase == TouchPhase.Moved && this.touchStart && this.touchBlock != null) {
 					RaycastHit touchHit;
 					Ray touchRay = Camera.main.ScreenPointToRay(touch.position);
 					if(Physics.Raycast(touchRay, out touchHit, Mathf.Infinity)) {
@@ -241,7 +239,7 @@ public class BlockManager : MonoBehaviour {
 						}
 					}					
 
-				}		
+				}	
 				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null) {
 					dotsAhoy();
 				}
@@ -261,23 +259,23 @@ public class BlockManager : MonoBehaviour {
 	
 	#if UNITY_IPHONE || UNITY_ANDROID
 	bool dotsAhoy() {
-		List<GameObject> matches = this.dotstring;
-		if(matches.Count > 1) {
-			foreach(GameObject match in matches) {
+
+		if(this.dotstring.Count > 1) {
+			foreach(GameObject match in this.dotstring) {
 				if(!this.cubeRotation) {
 					dropBlock(match.transform.position.x, 9f, match.transform.position.z, randColor());
 				}
 			}
-			clearBlocks(matches);
-			blockPop.PlayDelayed(0.05f);
+			clearBlocks(this.dotstring);
+			blockPop.PlayDelayed(0.02f);
 		} else {
-			foreach(GameObject match in matches) {
-				this.setAlpha(match, cubeAlpha);	
+			foreach(GameObject match in this.dotstring) {
+				this.setAlpha(match, cubeAlpha);
 			}
 		}
-		this.dotstring = new List<GameObject>();
+		this.dotstring.Clear();
 		this.touchBlock = null;
-		this.touchStart = false;				
+		this.touchStart = false;
 		return true;
 	}
 	#endif
@@ -331,7 +329,9 @@ public class BlockManager : MonoBehaviour {
 	void reset() {
 			
 		this.score = 0;
+		this.countdown = 61f;
 		this.modeDisplay.text = "Score: " + this.score.ToString("N0");
+		this.levelTimer.text = "READY!";
 		
 		int count = blocks.Count;
 		List<GameObject> sons = new List<GameObject>();
@@ -364,15 +364,7 @@ public class BlockManager : MonoBehaviour {
 			
 		}		
 		
-		if(this.gameMode == 1) {
-					
-			this.modeDisplay.text = "Mode: Invader";
-			
-		} else {
-			
-			this.modeDisplay.text = "Mode: Classic";
-			
-		}
+
 		
 		
 		initBlocks();
@@ -449,10 +441,13 @@ public class BlockManager : MonoBehaviour {
 	
 	void initRepeats() {
 		
+		InvokeRepeating("updateCountDown", 1f, 1f);
+		
 		//InvokeRepeating("newBlock", 2f, 1.6f);
+		/*
 		if(this.gameMode == 1) {
 			InvokeRepeating("newInvader", 3f, 8f);	
-		}
+		}*/
 		//InvokeRepeating("enableBlockFall", 0.5f, 3.5f);
 		#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
 			//InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
@@ -600,14 +595,17 @@ public class BlockManager : MonoBehaviour {
 		blocks.Add((GameObject) Instantiate(block, new Vector3(x, y, z), transform.rotation));
 		blocks[blocks.Count-1].renderer.material.shader = Shader.Find("Transparent/Diffuse");
 		blocks[blocks.Count-1].renderer.material.color = color;
+		setAlpha(blocks[blocks.Count-1], cubeAlpha);
+		/*
 		if(isBlockInSide(blocks[blocks.Count-1])) {
 			setAlpha(blocks[blocks.Count-1], cubeAlpha);
 		} else {
 			setAlpha(blocks[blocks.Count-1], bgAlpha);
-		}
+		}*/
 				
 		
 		// manage initial block colors
+		/*
 		if(!newCubes) {
 			List<GameObject> matching = getMatching(block: blocks[blocks.Count-1]);
 			if(matching.Count > 0) {
@@ -615,7 +613,7 @@ public class BlockManager : MonoBehaviour {
 					match.renderer.material.color = randColor();
 				}
 			}
-		}
+		}*/
 		
 	}
 	
@@ -820,7 +818,45 @@ public class BlockManager : MonoBehaviour {
 			
 		}
 			
-	}	
+	}
+		
+	void updateCountDown() {
+	
+		this.countdown -= 1;	
+		int secs = Mathf.CeilToInt(this.countdown);
+		string frt = "";
+		string bak = "";
+		
+		if(secs < 1) {
+			togglePause();	
+		}
+		
+		if(secs > 50) {
+			frt = "[[[[[[ ";
+			bak = " ]]]]]]";
+		} else if(secs > 40) {
+			frt = "[[[[[ ";
+			bak = " ]]]]]";			
+		} else if(secs > 30) {
+			frt = "[[[[ ";
+			bak = " ]]]]";			
+		} else if(secs > 20) {
+			frt = "[[[ ";
+			bak = " ]]]";			
+		} else if(secs > 10) {
+			frt = "[[ ";
+			bak = " ]]";			
+		} else if(secs > 4) {
+			frt = "[ ";
+			bak = " ]";			
+		} else if(secs > 3) {
+			frt = "";
+			bak = "";
+		}
+		
+		levelTimer.text = frt + secs.ToString() + bak;
+		
+	}
 	
 	
 	bool isValidSelection(GameObject cursor) {
@@ -848,34 +884,32 @@ public class BlockManager : MonoBehaviour {
 		}
 		
 	}
-	int newDots(GameObject selection) {
-		int dotcount = this.dotstring.Count;
-		if(dotcount > 0) {
-			if(selection.renderer.material.color.r != this.dotstring[0].renderer.material.color.r && selection.renderer.material.color.g != this.dotstring[0].renderer.material.color.g && selection.renderer.material.color.b != this.dotstring[0].renderer.material.color.b) {
+	void newDots(GameObject selection) {
+				
+		if(selection.renderer.material.color.r != this.dotstring[0].renderer.material.color.r) {
+			dotsAhoy();
+		} else if(!this.dotstring.Contains(selection)) {
+			if(!this.isDot(selection)) {
 				dotsAhoy();
-				return dotcount;
-			} else if(!this.dotstring.Contains(selection)) {
-				if(!this.isDot(selection)) {
-					dotsAhoy();
+			} else {
+				this.dotstring.Add(selection);
+				if(this.dotstring.Count == 2) {
+					this.blockSel1.Play();
+				} else if(this.dotstring.Count == 3) {
+					this.blockSel2.Play();
+				} else if(this.dotstring.Count == 4) {
+					this.blockSel3.Play();
+				} else if(this.dotstring.Count == 5) {
+					this.blockSel4.Play();
 				} else {
-					this.dotstring.Add(selection);
-					if(this.dotstring.Count == 2) {
-						this.blockSel1.Play();
-					} else if(this.dotstring.Count == 3) {
-						this.blockSel2.Play();
-					} else if(this.dotstring.Count == 4) {
-						this.blockSel3.Play();
-					} else if(this.dotstring.Count == 5) {
-						this.blockSel4.Play();
-					} else {
-						this.blockSel5.Play();
-					}
-					this.setAlpha(selection, selAlpha);
+					this.blockSel5.Play();
 				}
-				return dotcount;
+				this.setAlpha(selection, selAlpha);
 			}
+
 		}
-		return dotcount;
+		
+
 	}
 	bool isDot(GameObject selection) {
 		GameObject matchUp = this.getSelectorTouch(selection, Vector3.up);
@@ -1245,22 +1279,27 @@ public class BlockManager : MonoBehaviour {
 	
 	
 	public bool clearBlocks(List<GameObject> matches) {
-			
-		if(matches.Count > 0) {
+		
+		int numMatches = matches.Count;
+		
+		if(numMatches > 0) {
 			
 			/*
 			if(this.gameMode == 0) {
 				StartCoroutine(removeBlocks(matches));
 			}*/
 			
+			
 			foreach(GameObject match in matches) {
+				/*
 				if(this.gameMode == 0) {
 					match.rigidbody.constraints = RigidbodyConstraints.None;
 					match.rigidbody.AddForce(transform.TransformDirection(Vector3.back * 100000));
 					Block bScript = match.GetComponent<Block>();
 					bScript.nukeBlock();
-				}
-				this.score += 10;
+				}*/
+				removeBlock(match);
+				this.score += (10 * numMatches);
 			}
 			
 			this.modeDisplay.text = "Score: " + this.score.ToString("N0");
