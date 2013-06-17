@@ -46,12 +46,12 @@ public class BlockManager : MonoBehaviour {
 	private const GameObject defaultBlock = null;
 	private const List<GameObject> defaultBlocks = null;	
 	private List<Color> blockColors = new List<Color>{
-		//new Color(255f/255f, 46f/255f, 3f/255f), // red
-		//new Color(40f/255f, 130f/255f, 51f/255f), // green
-		//new Color(56f/255f, 98f/255f, 252f/255f), // blue		
+		new Color(255f/255f, 46f/255f, 3f/255f), // red
+		new Color(40f/255f, 130f/255f, 51f/255f), // green
+		new Color(56f/255f, 98f/255f, 252f/255f), // blue		
 		new Color(56f/255f, 243f/255f, 252f/255f), // aqua
 		new Color(88f/255f, 219f/255f, 103f/255f), // light green
-		//new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
+		new Color(237f/255f, 231f/255f, 161f/255f), // light yellow / tan
 		new Color(245f/255f, 225f/255f, 51f/255f), // bright yellow
 		new Color(232f/255f, 58f/255f, 229f/255f), // purple
 	};
@@ -231,7 +231,11 @@ public class BlockManager : MonoBehaviour {
 					Ray touchRay = Camera.main.ScreenPointToRay(touch.position);
 					if(Physics.Raycast(touchRay, out touchHit, Mathf.Infinity)) {
 						if(touchHit.rigidbody.gameObject.CompareTag("block")) {
-							if(isBlockInSide(touchHit.rigidbody.gameObject)) {
+							if(this.dotstring.Contains(touchHit.rigidbody.gameObject)) {
+								if(this.dotstring[this.dotstring.Count-1] != touchHit.rigidbody.gameObject) {
+									dotsAhoy();
+								}
+							} else {
 								newDots(touchHit.rigidbody.gameObject);
 							}
 						}
@@ -239,11 +243,7 @@ public class BlockManager : MonoBehaviour {
 
 				}		
 				if(touch.phase == TouchPhase.Ended && this.touchStart && this.touchBlock != null) {
-					//if(this.dotstring.Count > 1) {
 					dotsAhoy();
-					//}							
-					//this.touchStart = false;
-					//this.dotstring = new List<GameObject>();
 				}
 			}
 		}
@@ -263,6 +263,11 @@ public class BlockManager : MonoBehaviour {
 	bool dotsAhoy() {
 		List<GameObject> matches = this.dotstring;
 		if(matches.Count > 1) {
+			foreach(GameObject match in matches) {
+				if(!this.cubeRotation) {
+					dropBlock(match.transform.position.x, 9f, match.transform.position.z, randColor());
+				}
+			}
 			clearBlocks(matches);
 			blockPop.PlayDelayed(0.05f);
 		} else {
@@ -448,7 +453,7 @@ public class BlockManager : MonoBehaviour {
 		if(this.gameMode == 1) {
 			InvokeRepeating("newInvader", 3f, 8f);	
 		}
-		InvokeRepeating("enableBlockFall", 0.5f, 3.5f);
+		//InvokeRepeating("enableBlockFall", 0.5f, 3.5f);
 		#if UNITY_STANDALONE || UNITY_EDITOR || UNITY_WEBPLAYER
 			//InvokeRepeating("clearAllBlocks", 0.5f, 0.2f);
 		#endif
@@ -866,12 +871,6 @@ public class BlockManager : MonoBehaviour {
 						this.blockSel5.Play();
 					}
 					this.setAlpha(selection, selAlpha);
-				}
-				return dotcount;
-			} else if(this.dotstring.Contains(selection)) {
-				// prevent backtracing
-				if(this.dotstring[this.dotstring.Count-1] != selection) {
-					dotsAhoy();
 				}
 				return dotcount;
 			}
