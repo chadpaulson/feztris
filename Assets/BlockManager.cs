@@ -19,7 +19,7 @@ public class BlockManager : MonoBehaviour {
 	public AudioSource invaderHit;
 	private bool paused = false;
 	private int score = 0;
-	private float countdown = 61f;
+	private float countdown = 181f;
 	private Time startTime;
 	private GUIText modeDisplay;
 	private GUIText levelTimer;
@@ -224,7 +224,7 @@ public class BlockManager : MonoBehaviour {
 					}
 					this.touchStart = false;
 				}
-				if(touch.phase == TouchPhase.Moved && this.touchStart && this.touchBlock != null) {
+				if(touch.phase == TouchPhase.Moved && this.touchStart && this.touchBlock != null && this.dotstring.Count != 0) {
 					RaycastHit touchHit;
 					Ray touchRay = Camera.main.ScreenPointToRay(touch.position);
 					if(Physics.Raycast(touchRay, out touchHit, Mathf.Infinity)) {
@@ -267,7 +267,7 @@ public class BlockManager : MonoBehaviour {
 				}
 			}
 			clearBlocks(this.dotstring);
-			blockPop.PlayDelayed(0.02f);
+			blockPop.PlayDelayed(0.25f);
 		} else {
 			foreach(GameObject match in this.dotstring) {
 				this.setAlpha(match, cubeAlpha);
@@ -329,7 +329,7 @@ public class BlockManager : MonoBehaviour {
 	void reset() {
 			
 		this.score = 0;
-		this.countdown = 61f;
+		this.countdown = 181f;
 		this.modeDisplay.text = "Score: " + this.score.ToString("N0");
 		this.levelTimer.text = "READY!";
 		
@@ -824,13 +824,14 @@ public class BlockManager : MonoBehaviour {
 	
 		this.countdown -= 1;	
 		int secs = Mathf.CeilToInt(this.countdown);
-		string frt = "";
-		string bak = "";
+		//string frt = "";
+		//string bak = "";
 		
-		if(secs < 1) {
+		if(secs < 0) {
 			togglePause();	
 		}
 		
+		/*
 		if(secs > 50) {
 			frt = "[[[[[[ ";
 			bak = " ]]]]]]";
@@ -853,8 +854,21 @@ public class BlockManager : MonoBehaviour {
 			frt = "";
 			bak = "";
 		}
+		*/
 		
-		levelTimer.text = frt + secs.ToString() + bak;
+		int mins = secs / 60;
+		string displayTime;
+		int seconds;
+		
+		if(mins > 0) {
+			seconds = (secs - (mins * 60));
+			displayTime = mins.ToString() + ":" + seconds;		
+		} else {
+			displayTime = secs.ToString();
+		}
+		
+		//levelTimer.text = frt + displayTime + bak;
+		levelTimer.text = displayTime;
 		
 	}
 	
@@ -893,6 +907,7 @@ public class BlockManager : MonoBehaviour {
 				dotsAhoy();
 			} else {
 				this.dotstring.Add(selection);
+				this.setAlpha(selection, selAlpha);
 				if(this.dotstring.Count == 2) {
 					this.blockSel1.Play();
 				} else if(this.dotstring.Count == 3) {
@@ -904,7 +919,7 @@ public class BlockManager : MonoBehaviour {
 				} else {
 					this.blockSel5.Play();
 				}
-				this.setAlpha(selection, selAlpha);
+				
 			}
 
 		}
@@ -913,37 +928,41 @@ public class BlockManager : MonoBehaviour {
 	}
 	bool isDot(GameObject selection) {
 		GameObject matchUp = this.getSelectorTouch(selection, Vector3.up);
-		GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
-		GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
-		GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
-		bool dot = false;
 		if(matchUp.CompareTag("block") && this.dotstring.Contains(matchUp)) {
-			dot = true;
-		} else if(matchDown.CompareTag("block") && this.dotstring.Contains(matchDown)) {
-			dot = true;
-		} else if(matchRight.CompareTag("block") && this.dotstring.Contains(matchRight)) {
-			dot = true;
-		} else if(matchLeft.CompareTag("block") && this.dotstring.Contains(matchLeft)) {
-			dot = true;
+			return true;
 		}
-		return dot;
+		GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
+		if(matchDown.CompareTag("block") && this.dotstring.Contains(matchDown)) {
+			return true;
+		}
+		GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
+		if(matchRight.CompareTag("block") && this.dotstring.Contains(matchRight)) {
+			return true;
+		}
+		GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
+		if(matchLeft.CompareTag("block") && this.dotstring.Contains(matchLeft)) {
+			return true;
+		}
+		return false;
 	}
 	bool isDotString(GameObject selection) {
 		GameObject matchUp = this.getSelectorTouch(selection, Vector3.up);
-		GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
-		GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
-		GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
-		bool dot = false;
-		if(matchUp.CompareTag("block") && !this.dotstring.Contains(matchUp) && matchUp.renderer.material.color == selection.renderer.material.color) {
-			dot = true;
-		} else if(matchDown.CompareTag("block") && !this.dotstring.Contains(matchDown) && matchDown.renderer.material.color == selection.renderer.material.color) {
-			dot = true;
-		} else if(matchRight.CompareTag("block") && !this.dotstring.Contains(matchRight) && matchRight.renderer.material.color == selection.renderer.material.color) {
-			dot = true;
-		} else if(matchLeft.CompareTag("block") && !this.dotstring.Contains(matchLeft) && matchLeft.renderer.material.color == selection.renderer.material.color) {
-			dot = true;
+		if(matchUp.CompareTag("block") && matchUp.renderer.material.color == selection.renderer.material.color) {
+			return true;
 		}
-		return dot;
+		GameObject matchDown = this.getSelectorTouch(selection, Vector3.down);
+		if(matchDown.CompareTag("block") && matchDown.renderer.material.color == selection.renderer.material.color) {
+			return true;
+		}
+		GameObject matchRight = this.getSelectorTouch(selection, Vector3.right);
+		if(matchRight.CompareTag("block") && matchRight.renderer.material.color == selection.renderer.material.color) {
+			return true;
+		}
+		GameObject matchLeft = this.getSelectorTouch(selection, Vector3.left);
+		if(matchLeft.CompareTag("block") && matchLeft.renderer.material.color == selection.renderer.material.color) {
+			return true;
+		}
+		return false;
 	}	
 	#endif
 	

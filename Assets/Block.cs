@@ -5,14 +5,14 @@ using System.Collections.Generic;
 public class Block : MonoBehaviour {
 	
 
-	public AudioSource blockFall;
-	private BlockManager manager;
-	private bool blockCollision = false;
+	//public AudioSource blockFall;
+	//private BlockManager manager;
+	//private bool blockCollision = false;
 	
 	
 	void Awake() {
-		GameObject cubeManager = GameObject.FindGameObjectWithTag("manager");
-		manager = cubeManager.GetComponent<BlockManager>();	
+		//GameObject cubeManager = GameObject.FindGameObjectWithTag("manager");
+		//manager = cubeManager.GetComponent<BlockManager>();	
 	}
 	
 	
@@ -30,7 +30,7 @@ public class Block : MonoBehaviour {
 	
 			
 	void OnCollisionExit(Collision col) {
-		
+		/*
 		if(col.gameObject.CompareTag("block") || col.gameObject.CompareTag("ground")) {
 			if(!this.blockCollision) {
 				
@@ -40,7 +40,7 @@ public class Block : MonoBehaviour {
 				manager.disableBlockFall();			
 				blockFall.Play();
 			}
-		}
+		}*/
 				
 	}
 	
@@ -54,6 +54,8 @@ public class Block : MonoBehaviour {
 	
 	IEnumerator delayNuke() {
 	
+		GameObject cubeManager = GameObject.FindGameObjectWithTag("manager");
+		BlockManager manager = cubeManager.GetComponent<BlockManager>();
 		yield return new WaitForSeconds(0.2f);
 		manager.removeBlock(gameObject);
 		
