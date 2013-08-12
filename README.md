@@ -1,4 +1,5 @@
-# Feztris
+![feztris](https://raw.github.com/chadpaulson/feztris/master/Assets/splash.png)
+---
 
 ### Overview
 
