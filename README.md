@@ -10,7 +10,21 @@ I left the project alone until Unity's free mobile licensing announcement inspir
 Pardon the mess.
 
 
+### How To Play
+
+[![Feztris](http://i.imgur.com/2EVnB94.gif "Feztris running on iPhone Simulator")](http://www.youtube.com/watch?v=e7X4KEylbpc)
+
+Touch and [swipe similarly colored blocks](http://www.youtube.com/watch?v=e7X4KEylbpc) to match. A score multiplier kicks in when you match more than 3 blocks.  Swipe the sides of the screen to rotate the cube.
+
+
+### Play The Game
+
+An Android 2.3.3 (OpenGL ES 2) [APK is available](https://raw.github.com/chadpaulson/feztris/master/feztris-v0.1.apk). You can build the game for all platforms with Unity 4 and, if you are targeting iOS devices, a valid provisioning profile.  View the platform notes below for details.
+
+
 ### Platform Support
+
+For those targeting Android and iOS, please build the latest commit.  For those building the latest stable version for Mac and PC, please build commit [c56e7a70d4](https://github.com/chadpaulson/feztris/commit/c56e7a70d4d7b3fb63244f460e725697e7a8e4ac).  Below is a breakdown of platform support.
 
 
 #### iOS
@@ -26,12 +40,6 @@ Pardon the mess.
 * ended: [c56e7a70d4](https://github.com/chadpaulson/feztris/commit/c56e7a70d4d7b3fb63244f460e725697e7a8e4ac)
 * started: [3ba19a9aae](https://github.com/chadpaulson/feztris/commit/3ba19a9aae7fb2a1272828b7c25a1ed347676b2a)
 
-
-### How To Play
-
-[![Feztris](http://i.imgur.com/2EVnB94.gif "Feztris running on iPhone Simulator")](http://www.youtube.com/watch?v=e7X4KEylbpc)
-
-Touch and [swipe similarly colored blocks](http://www.youtube.com/watch?v=e7X4KEylbpc) to match. A score multiplier kicks in when you match more than 3 blocks.  Swipe the sides of the screen to rotate the cube.
 
 
 ### Motivation
