@@ -24,7 +24,7 @@ An Android 2.3.3 (OpenGL ES 2) [APK is available](https://raw.github.com/chadpau
 
 ### Platform Support
 
-For those targeting Android and iOS, please build the latest commit.  For those building the latest stable version for Mac and PC, please build commit [c56e7a70d4](https://github.com/chadpaulson/feztris/commit/c56e7a70d4d7b3fb63244f460e725697e7a8e4ac).  Below is a breakdown of platform support.
+For those targeting Android and iOS, please build the latest commit.  For those targeting the latest stable version for Mac and PC, please build commit [c56e7a70d4](https://github.com/chadpaulson/feztris/commit/c56e7a70d4d7b3fb63244f460e725697e7a8e4ac).  Below is a breakdown of platform support.
 
 
 #### iOS
