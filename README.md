@@ -2,7 +2,9 @@
 
 ### Overview
 
-Experiment / 3D puzzle game using camera mechanic similar to Fez.  The project started out as a Mac game intended for Ouya, GameStick, etc. I grew tired of the slow pace and couldn't find a way to improve the experience, but Unity's free mobile license inspired me to give it one last shot on mobile.  It's more fun, but I've grown tired of it and decided to share.
+Experiment / 3D puzzle game using a camera mechanic inspired by Fez.  The project started out as a Mac game intended for Ouya, GameStick, etc. When I play tested the initial game modes with a PlayStation 3 Dual Shock controller the game felt a bit clunky and I couldn't find a way to improve the experience.
+
+I left the project alone until Unity's free mobile licensing announcement inspired me to give it one last shot on Android and iOS.  The mobile build is more fun, but I think I'm done with this concept and thought I would share.
 
 Pardon the mess.
 
@@ -24,7 +26,11 @@ Pardon the mess.
 * started: [3ba19a9aae](https://github.com/chadpaulson/feztris/commit/3ba19a9aae7fb2a1272828b7c25a1ed347676b2a)
 
 
-![Feztris](http://i.imgur.com/eOepV8Q.jpg "Feztris running on Kindle Fire")
+### How To Play
+
+[![Feztris](http://i.imgur.com/2EVnB94.gif "Feztris running on iPhone Simulator")](http://www.youtube.com/watch?v=e7X4KEylbpc)
+
+Touch and [swipe similarly colored blocks](http://www.youtube.com/watch?v=e7X4KEylbpc) to match. A score multiplier kicks in when you match more than 3 blocks.  Swipe the sides of the screen to rotate the cube.
 
 
 ### Motivation
