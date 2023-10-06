@@ -12,7 +12,7 @@ Pardon the mess.
 
 ### How To Play
 
-[![Feztris](http://i.imgur.com/2EVnB94.gif "Feztris running on iPhone Simulator")](http://www.youtube.com/watch?v=e7X4KEylbpc)
+[![Feztris](https://raw.githubusercontent.com/chadpaulson/feztris/master/feztris_demo.gif "Feztris running on iPhone Simulator")](http://www.youtube.com/watch?v=e7X4KEylbpc)
 
 Touch and [swipe similarly colored blocks](http://www.youtube.com/watch?v=e7X4KEylbpc) to match. A score multiplier kicks in when you match more than 3 blocks.  Swipe the sides of the screen to rotate the cube.
 
